@@ -11,6 +11,12 @@ compatibility with POSIX or any other `ls` isn't the main goal.
 That said, most people should be able to use `alias ls=elles` and not get too
 surprised; defaults are and the most commonly used flags are identical.
 
+It differs from [eza] or [lsd] in that it has a slightly different feature set,
+and makes some different choices about various aspects.
+
+[eza]: https://github.com/eza-community/eza
+[lsd]: https://github.com/lsd-rs/lsd
+
 Installation
 ------------
 There are binaries on the [releases] page; or to compile from source:

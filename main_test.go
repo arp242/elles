@@ -1057,6 +1057,10 @@ func TestColumns(t *testing.T) {
 }
 
 func TestSpace(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows doesn't like filenames as just a space, or something")
+	}
+
 	start(t)
 	for _, f := range []string{
 		"with space",
