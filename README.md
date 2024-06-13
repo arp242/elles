@@ -158,7 +158,8 @@ TODO
   other days" type logic. Also might want to do relative times ("5 hours ago")
   as: "relative for this week, full date for older".
 
-- Can't configure which borders to display.
+- Can't configure which borders to display, or column width (FreeBSD ls has
+  LS_COLWIDTHS for that).
 
 - I didn't implement any filtering; not sure yet what the best approach for
   this. Realistically, I almost never want to see `*.o` files in my listing. eza

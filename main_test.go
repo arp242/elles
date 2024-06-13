@@ -1016,13 +1016,31 @@ func TestRemovedDirectory(t *testing.T) {
 	}
 }
 
+func TestCase(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows doesn't like two pathnames differing only in casing")
+	}
+
+	start(t)
+
+	for _, f := range []string{"aa", "AA", "aA", "Aa"} {
+		touch(t, f)
+	}
+
+	have := mustRun(t, "-C")
+	want := norm(`AA  Aa  aA  aa`)
+	if have != want {
+		t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+	}
+}
+
 func TestColumns(t *testing.T) {
 	defer func() { columns = 80 }()
 	columns = 40
 
 	start(t)
 
-	for _, f := range []string{"aa", "c", "d", "e", "i", "klmn", "opqr",
+	for _, f := range []string{"c", "d", "e", "i", "klmn", "opqr",
 		"stuv", "wxyz", "xxxx", "Hello", "AA", "with space"} {
 		touch(t, f)
 	}
@@ -1030,9 +1048,9 @@ func TestColumns(t *testing.T) {
 
 	have := mustRun(t, "-C")
 	want := norm(`
-		AA     c    e     opqr        wxyz
-		Hello  d    i     stuv        xxxx
-		aa     dir  klmn  with space`)
+		AA     d    i     stuv        xxxx
+		Hello  dir  klmn  with space
+		c      e    opqr  wxyz`)
 	if have != want {
 		t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
 	}
@@ -1137,6 +1155,10 @@ func TestControlChar(t *testing.T) {
 }
 
 func TestUnprintable(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows doesn't like some of these")
+	}
+
 	start(t)
 
 	for _, n := range []string{
