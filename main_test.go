@@ -3,10 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"net"
 	"os"
-	"os/exec"
 	"reflect"
 	"runtime"
 	"strings"
@@ -14,7 +12,6 @@ import (
 	"time"
 
 	"zgo.at/elles/os2"
-	"zgo.at/zli"
 )
 
 func TestGroupDigits(t *testing.T) {
@@ -319,11 +316,11 @@ func TestLongLong(t *testing.T) {
 	}
 
 	// Permissions are different on Linux and BSD :-/ Can lchown() them on BSD,
-	// but Go doesn't expoet that.
-	lnkprm := "lrwxr-xr-x"
+	// but Go doesn't expose that.
+	lnkprm, lnkprmO := "lrwxr-xr-x", " 755"
 	switch runtime.GOOS {
 	case "linux", "illumos", "solaris":
-		lnkprm = "lrwxrwxrwx"
+		lnkprm, lnkprmO = "lrwxrwxrwx", " 777"
 	}
 
 	t.Run("default", func(t *testing.T) {
@@ -365,6 +362,20 @@ func TestLongLong(t *testing.T) {
 			"Jan _2 15:04", now.Format("Jan _2 15:04"),
 			"XXXX", userinfo.UserID,
 			"YYYY", userinfo.GroupID)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	})
+
+	t.Run("-o", func(t *testing.T) {
+		have := mustRun(t, "-llgo")
+		want := norm(`
+			 644 martin tournoij 1.0M Jan _2 15:04 │ 1M
+			 644 martin tournoij    0 Jan _2 15:04 │ dir
+			 644 martin tournoij 9.8K Jan _2 15:04 │ file
+			`+lnkprmO+` martin tournoij    3 Jan _2 15:04 │ ln-dir → dir
+			`+lnkprmO+` martin tournoij    4 Jan _2 15:04 │ ln-file → file`,
+			"Jan _2 15:04", now.Format("Jan _2 15:04"))
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}
@@ -936,141 +947,262 @@ func TestWidth(t *testing.T) {
 	}
 }
 
-func clearColors() {
-	zli.WantColor = false
-	for _, c := range []*string{
-		&colorNormal, &colorFile, &colorDir, &colorLink, &colorPipe, &colorSocket,
-		&colorBlockDev, &colorCharDev, &colorOrphan, &colorExec, &colorDoor,
-		&colorSuid, &colorSgid, &colorSticky, &colorOtherWrite,
-		&colorOtherWriteStick, &reset,
-	} {
-		*c = ""
+func TestRecurse(t *testing.T) {
+	start(t)
+
+	for _, d := range []string{"x", "y", "a", "b", "c", "a/1", "a/2", "a/3"} {
+		mkdirAll(t, d)
+	}
+	for _, f := range []string{"f", "a/1/I", "a/1/II"} {
+		touch(t, f)
+	}
+
+	// This first example is from Andreas Schwab's bug report.
+	have := mustRun(t, "-R1", "a", "b", "c")
+	want := norm(`
+		a:
+		1
+		2
+		3
+
+		a/1:
+		I
+		II
+
+		a/2:
+
+		a/3:
+
+		b:
+
+		c:`)
+	if have != want {
+		t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
+	}
+
+	have = mustRun(t, "-R1", "x", "y", "f")
+	want = norm(`
+		f
+
+		x:
+
+		y:`)
+	if have != want {
+		t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
 	}
 }
 
-func TestColor(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip() // TODO: just because of the FIFO etc.
+func TestRemovedDirectory(t *testing.T) {
+	switch runtime.GOOS {
+	case "illumos", "solaris", "windows":
+		t.Skipf("can't delete used directory on %s", runtime.GOOS)
+	case "netbsd":
+		if isCI() {
+			// helper_test.go:46: mustRun failed: elles-test: getwd: no such file or directory
+			t.Skip("TODO: fails in CI")
+		}
 	}
-
-	defer clearColors()
-
-	os.Unsetenv("LS_COLORS")
-	os.Unsetenv("LSCOLORS")
 
 	start(t)
-	touch(t, "file")
+	mkdirAll(t, "d")
+	cd(t, "d")
+	rmAll(t, "../d")
+
+	if have := mustRun(t); have != "" {
+		t.Error(have)
+	}
+	if have, ok := run(t, "../d"); ok {
+		t.Error(have)
+	}
+}
+
+func TestColumns(t *testing.T) {
+	defer func() { columns = 80 }()
+	columns = 40
+
+	start(t)
+
+	for _, f := range []string{"aa", "c", "d", "e", "i", "klmn", "opqr",
+		"stuv", "wxyz", "xxxx", "Hello", "AA", "with space"} {
+		touch(t, f)
+	}
 	mkdirAll(t, "dir")
-	symlink(t, "file", "link")
-	mkfifo(t, "fifo")
-	touch(t, "exec")
-	chmod(t, 0o555, "exec")
-	l, err := net.Listen("unix", "socket")
-	if err != nil {
-		t.Fatal(err)
+
+	have := mustRun(t, "-C")
+	want := norm(`
+		AA     c    e     opqr        wxyz
+		Hello  d    i     stuv        xxxx
+		aa     dir  klmn  with space`)
+	if have != want {
+		t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
 	}
-	defer l.Close()
+}
 
-	symlink(t, "file", "link-file")
-	symlink(t, "dir", "link-dir")
-	symlink(t, "exec", "link-exec")
-	symlink(t, "fifo", "link-fifo")
-	symlink(t, "socket", "link-socket")
-	symlink(t, "orphan", "link-orphan")
+func TestSpace(t *testing.T) {
+	start(t)
+	for _, f := range []string{
+		"with space",
+		" leading space",
+		"trailing space ",
+		" ",
+		"  ",
+		"\t",
+	} {
+		touch(t, f)
+	}
 
-	touch(t, "world-file")
-	touch(t, "world-dir")
-	chmod(t, 0o777, "world-file")
-	chmod(t, 0o777, "world-dir")
-
-	mkdirAll(t, "sticky-dir")
-	mkdirAll(t, "sticky-dir-world")
-	chmod(t, 0o755|fs.ModeSticky, "sticky-dir")
-	chmod(t, 0o777|fs.ModeSticky, "sticky-dir-world")
-
-	defaultColors = "gnu"
-	haveGNU := mustRun(t, "-CF", "--color=always") + "\n"
-	for i, l := range strings.Split(mustRun(t, "-lF", "--color=always"), "\n") {
-		if i > 0 {
-			if i%5 == 0 {
-				haveGNU += "\n"
-			} else {
-				haveGNU += " → "
-			}
+	{
+		have := mustRun(t, "-1")
+		want := norm(`
+			$'\t'
+			" "
+			"  "
+			" leading space"
+			"trailing space "
+			with space`)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}
-		f := strings.Split(l, " │ ")
-		haveGNU += f[2]
 	}
-
-	defaultColors = "bsd"
-	haveBSD := mustRun(t, "-CF", "--color=always") + "\n"
-	for i, l := range strings.Split(mustRun(t, "-lF", "--color=always"), "\n") {
-		if i > 0 {
-			if i%5 == 0 {
-				haveBSD += "\n"
-			} else {
-				haveBSD += " → "
-			}
+	{
+		have := mustRun(t, "-1Q")
+		want := norm(`
+			"\t"
+			" "
+			"  "
+			" leading space"
+			"trailing space "
+			"with space"`)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}
-		f := strings.Split(l, " │ ")
-		haveBSD += f[2]
+	}
+}
+
+func TestControlChar(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("control characters aren't permitted in Windows")
 	}
 
-	// Can get the system values with the following functions, assuming it point
-	// to the correct "ls".
-	testGNU := func() string {
-		out1, _ := exec.Command("ls", "-CF", "--color=always").CombinedOutput()
-		out2, _ := exec.Command("ls", "-lF", "--color=always").CombinedOutput()
-		out3 := string(out1)
-		for i, l := range strings.Split(string(out2), "\n")[1:] {
-			if l == "" {
-				continue
-			}
-			if i > 0 {
-				if i%5 == 0 {
-					out3 += "\n"
-				} else {
-					out3 += " → "
-				}
-			}
-			f := strings.Fields(l)
-			if len(f) > 7 {
-				out3 += strings.Join(f[8:], " ")
-			}
+	start(t)
+
+	for n := range byte(0x1e) {
+		touch(t, string([]byte{n + 1}))
+	}
+	for n := range rune(24) {
+		mkdirAll(t, string([]rune{n + 0x80}))
+	}
+	touch(t, string([]byte{0x7f}))
+	touch(t, "a\x01b\x02")
+	symlink(t, "a\x01b\x02", "link1")
+	symlink(t, "\n", "link2")
+	symlink(t, "\x7f", "link3")
+	symlink(t, "\u0081", "link4")
+	symlink(t, "link1", "link\x01b\x02")
+
+	{
+		have := mustRun(t, "-CF")
+		want := norm(`
+			$'\x01'  $'\n'    $'\x13'  $'\x1c'               $'\x7f'   $'\x88'/  $'\x91'/
+			$'\x02'  $'\x0b'  $'\x14'  $'\x1d'               $'\x80'/  $'\x89'/  $'\x92'/
+			$'\x03'  $'\x0c'  $'\x15'  $'\x1e'               $'\x81'/  $'\x8a'/  $'\x93'/
+			$'\x04'  $'\r'    $'\x16'  a$'\x01'b$'\x02'      $'\x82'/  $'\x8b'/  $'\x94'/
+			$'\x05'  $'\x0e'  $'\x17'  link$'\x01'b$'\x02'@  $'\x83'/  $'\x8c'/  $'\x95'/
+			$'\x06'  $'\x0f'  $'\x18'  link1@                $'\x84'/  $'\x8d'/  $'\x96'/
+			$'\x07'  $'\x10'  $'\x19'  link2@                $'\x85'/  $'\x8e'/  $'\x97'/
+			$'\x08'  $'\x11'  $'\x1a'  link3@                $'\x86'/  $'\x8f'/
+			$'\t'    $'\x12'  $'\e'    link4@                $'\x87'/  $'\x90'/`)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}
-		return out3
 	}
-	testBSD := func() string {
-		os.Setenv("CLICOLOR_FORCE", "1")
-		p := "/home/martin/code/Prog/boxlike/boxlike-static"
-		out1, _ := exec.Command(p, "ls", "-CFG").CombinedOutput()
-		out2, _ := exec.Command(p, "ls", "-lFG").CombinedOutput()
-		out3 := string(out1)
-		for i, l := range strings.Split(string(out2), "\n")[1:] {
-			if l == "" {
-				continue
-			}
-			if i > 0 {
-				if i%5 == 0 {
-					out3 += "\n"
-				} else {
-					out3 += " → "
-				}
-			}
-			f := strings.Fields(l)
-			if len(f) > 7 {
-				out3 += strings.Join(f[8:], " ")
-			}
+
+	{
+		h := strings.Split(mustRun(t, "-l", "link1", "link2", "link3", "link4", "link\x01b\x02"), "\n")
+		for i := range h {
+			x := strings.Split(h[i], " │ ")
+			h[i] = x[2]
 		}
-		return out3
+		have := strings.Join(h, "\n")
+		want := norm(`
+			link$'\x01'b$'\x02' → link1
+			link1 → a$'\x01'b$'\x02'
+			link2 → $'\n'
+			link3 → $'\x7f'
+			link4 → $'\x81'`)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
 	}
-	_, _, _, _ = testGNU, testBSD, haveGNU, haveBSD
+}
 
-	//fmt.Println(haveGNU)
-	//fmt.Print("\n-------------------------\n\n")
-	//fmt.Println(testGNU())
+func TestUnprintable(t *testing.T) {
+	start(t)
 
-	//fmt.Println(haveBSD)
-	//fmt.Print("\n-------------------------\n\n")
-	//fmt.Println(testBSD())
+	for _, n := range []string{
+		"A→B",
+		"A\u200dB", // Zero-width joiner
+		"A\u200eB", // Left-to-right mark
+		"A\u202dB", // Left-to-right override
+		"A\ufe0eB", // text variation selector
+		"A\ufe0fB", // emoji variation selector
+		"A\ufe04B", // Mongolian variation selector
+		"a\u0305b", // Combining overline
+	} {
+		touch(t, n)
+	}
+
+	{
+		have := mustRun(t, "-C")
+		want := norm(`
+			A$'\u200d'B  A$'\u202d'B  A$'\ufe04'B  A$'\ufe0f'B
+			A$'\u200e'B  A→B          A$'\ufe0e'B  a̅b`)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+
+	{
+		have := mustRun(t, "-CQ")
+		want := norm(`
+			"A\u200dB"  "A\u202dB"  "A\ufe04B"  "A\ufe0fB"
+			"A\u200eB"  A→B         "A\ufe0eB"  a̅b`)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+}
+
+func TestSpecialShell(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("many of these are not valid on Windows")
+	}
+
+	start(t)
+	for _, n := range []string{
+		"~", "`", "!", "#", "$", "%", "&", "*", "(", ")",
+		"[", "]", "{", "}", "|", "\\", ";", ":", `"`, "'",
+		",", ">", "<", "?",
+		"...",
+	} {
+		touch(t, n)
+	}
+
+	{
+		have := mustRun(t, "-aC")
+		want := "!  \"  #  $  %  &  '  (  )  *  ,  ...  :  ;  <  >  ?  [  \\  ]  `  {  |  }  ~"
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+
+	{
+		have := mustRun(t, "-aQC")
+		want := norm(`
+			"!"   "#"  "%"  "'"  ")"  ,    :    "<"  "?"  "\"  "\` + "`" + `"  "|"  "~"
+			"\""  "$"  "&"  "("  "*"  ...  ";"  ">"  "["  "]"  "{"   "}"`)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
 }

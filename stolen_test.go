@@ -8,121 +8,14 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"zgo.at/zli"
 )
 
 // These are tests from FreeBSD (commit 0dfd11abc) and GNU coreutils (commit
 // bbc972b), and should be merged/converted in to main_test.go
 
 func TestFreeBSD(t *testing.T) {
-	createTestInputs := func(t *testing.T) string {
-		if runtime.GOOS == "windows" {
-			// TODO: rewrite these tests to not depend on this one function.
-			t.Skip("control characters aren't permitted in Windows")
-		}
-
-		tmp := start(t)
-
-		mkdirAll(t, "a/b/1")   // mkdir -m 0755 -p a/b/1
-		symlink(t, "a/b", "c") // ln -s a/b c
-		touch(t, "d")
-		symlink(t, "d", "e") // ln d e
-		touch(t, ".f")
-		mkdirAll(t, ".g")
-		//mkfifo(t,  "h")
-		if err := os.WriteFile("i", []byte(strings.Repeat("\x00", 1000)), 0o644); err != nil {
-			// dd if=/dev/zero of=i count=1000 bs=1
-			t.Fatal(err)
-		}
-		touch(t, "klmn")
-		touch(t, "opqr")
-		touch(t, "stuv")
-		touch(t, "wxyz") // install -m 0755 /dev/null wxyz
-		chmod(t, 0o755, "wxyz")
-
-		for _, n := range []byte{0b00000001, 0b00000010, 0b00000011, 0b00000100,
-			0b00000101, 0b00000110, 0b00000111, 0b00001000, 0b00001001, 0b00001010,
-			0b00001011, 0b00001100, 0b00001101, 0b00001110, 0b00001111} {
-			touch(t, string([]byte{n}))
-		}
-
-		return tmp
-	}
-
-	t.Run("ls -B prints out non-printable characters", func(t *testing.T) {
-		if runtime.GOOS == "windows" {
-			t.Skip("Windows doesn't allow non-printable characters")
-		}
-		start(t)
-
-		touch(t, "y\013z")
-		have := mustRun(t, "-1")
-		want := `y$'\x0b'z`
-		if have != want {
-			t.Errorf("\nhave: %q\nwant: %q", have, want)
-		}
-	})
-
-	t.Run("ls -C is multi-column, sorted down", func(t *testing.T) {
-		createTestInputs(t)
-		restore := columns
-		defer func() { columns = restore }()
-		columns = 40
-
-		have := mustRun(t, "-C")
-		want := strings.ReplaceAll(`
-			$'\x01'  $'\x06'  $'\x0b'  a  klmn
-			$'\x02'  $'\x07'  $'\x0c'  c  opqr
-			$'\x03'  $'\x08'  $'\r'    d  stuv
-			$'\x04'  $'\t'    $'\x0e'  e  wxyz
-			$'\x05'  $'\n'    $'\x0f'  i`[1:], "\t", "")
-		if have != want {
-			t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
-		}
-	})
-
-	t.Run("ls -R prints out the directory contents recursively", func(t *testing.T) {
-		createTestInputs(t)
-
-		have := mustRun(t, "-1R")
-		want := strings.ReplaceAll(`
-			.:
-			$'\x01'
-			$'\x02'
-			$'\x03'
-			$'\x04'
-			$'\x05'
-			$'\x06'
-			$'\x07'
-			$'\x08'
-			$'\t'
-			$'\n'
-			$'\x0b'
-			$'\x0c'
-			$'\r'
-			$'\x0e'
-			$'\x0f'
-			a
-			c
-			d
-			e
-			i
-			klmn
-			opqr
-			stuv
-			wxyz
-
-			a:
-			b
-
-			a/b:
-			1
-
-			a/b/1:`[1:], "\t", "")
-		if have != want {
-			t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
-		}
-	})
-
 	t.Run("-d doesn't descend down directories", func(t *testing.T) {
 		start(t)
 		mkdirAll(t, "a/b")
@@ -635,81 +528,6 @@ func TestGNU(t *testing.T) {
 		}
 	})
 
-	t.Run("recursive", func(t *testing.T) {
-		// 4.1.1 and 4.1.2 had a bug whereby some recursive listings didn't
-		// include a blank line between per-directory groups of files.
-		start(t)
-
-		for _, d := range []string{"x", "y", "a", "b", "c", "a/1", "a/2", "a/3"} {
-			mkdirAll(t, d)
-		}
-		for _, f := range []string{"f", "a/1/I", "a/1/II"} {
-			touch(t, f)
-		}
-
-		// This first example is from Andreas Schwab's bug report.
-		have := mustRun(t, "-R1", "a", "b", "c")
-		want := strings.ReplaceAll(`
-			a:
-			1
-			2
-			3
-
-			a/1:
-			I
-			II
-
-			a/2:
-
-			a/3:
-
-			b:
-
-			c:`[1:], "\t", "")
-		if have != want {
-			t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
-		}
-
-		have = mustRun(t, "-R1", "x", "y", "f")
-		want = strings.ReplaceAll(`
-			f
-
-			x:
-
-			y:`[1:], "\t", "")
-		if have != want {
-			t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
-		}
-	})
-
-	t.Run("removed-directory", func(t *testing.T) {
-		switch runtime.GOOS {
-		case "illumos", "solaris", "windows":
-			t.Skipf("can't delete used directory on %s", runtime.GOOS)
-		case "netbsd":
-			if isCI() {
-				// helper_test.go:46: mustRun failed: elles-test: getwd: no such file or directory
-				t.Skip("TODO: fails in CI")
-			}
-		}
-
-		// If ls is asked to list a removed directory (e.g., the parent
-		// process's current working directory has been removed by another
-		// process), it should not emit an error message merely because the
-		// directory is removed.
-		start(t)
-		mkdirAll(t, "d")
-		cd(t, "d")
-		rmAll(t, "../d")
-
-		if have := mustRun(t); have != "" {
-			t.Error(have)
-		}
-		if have, ok := run(t, "../d"); ok {
-			t.Error(have)
-		}
-	})
-
 	t.Run("root-rel-symlink-color", func(t *testing.T) {
 		// 8.17 ls bug with coloring relative-named symlinks in "/".
 		start(t)
@@ -967,4 +785,16 @@ func TestGNU(t *testing.T) {
 			t.Error(have)
 		}
 	})
+}
+
+func clearColors() {
+	zli.WantColor = false
+	for _, c := range []*string{
+		&colorNormal, &colorFile, &colorDir, &colorLink, &colorPipe, &colorSocket,
+		&colorBlockDev, &colorCharDev, &colorOrphan, &colorExec, &colorDoor,
+		&colorSuid, &colorSgid, &colorSticky, &colorOtherWrite,
+		&colorOtherWriteStick, &reset,
+	} {
+		*c = ""
+	}
 }

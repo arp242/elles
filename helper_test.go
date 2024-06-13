@@ -16,6 +16,14 @@ import (
 	"zgo.at/zli"
 )
 
+func init() {
+	zli.WantColor = false
+	os.Unsetenv("LS_COLORS")
+	os.Unsetenv("LSCOLORS")
+	os.Setenv("COLUMNS", "80")
+	columns = 80
+}
+
 var mydir = func() string {
 	d, err := os.Getwd()
 	if err != nil {
@@ -75,12 +83,6 @@ var dirsize = func() int {
 	}
 	return int(st.Size())
 }()
-
-func init() {
-	zli.WantColor = false
-	os.Setenv("COLUMNS", "80")
-	columns = 80
-}
 
 var join = filepath.Join
 

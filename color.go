@@ -129,7 +129,7 @@ func bsdcolor(c byte, bold bool) zli.Color {
 		return zli.Underline
 	}
 	if c != 'x' {
-		zli.Errorf("unknown color code in LSCOLORs: %c", c)
+		zli.Errorf("unknown color code in LSCOLORS: %c", c)
 	}
 	return 0
 }

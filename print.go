@@ -171,14 +171,7 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 	if dir != "" && !opt.recurse && !listingDir {
 		n = filepath.Join(dir, n)
 	}
-	switch opt.quote {
-	case 0:
-		n = doQuote(n, 0)
-	case 1:
-		n = doQuote(n, 1)
-	default:
-		n = doQuote(n, 2)
-	}
+	n = doQuote(n, opt.quote)
 
 	// TODO: this should probably use zgo.at/termtext or something, pretty
 	// sure alignment of this will be off in cases of double-width stuff
@@ -268,6 +261,7 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 				}
 			}
 
+			l = doQuote(l, opt.quote)
 			n = c + n + reset + " → " + targetC + l + targetR
 			width += 3 + len(l)
 		}
@@ -299,6 +293,10 @@ func esc(s string) string {
 	return strings.ReplaceAll(url.PathEscape(s), "%2F", "/")
 }
 
+func isVariationSelector(r rune) bool {
+	return (r >= 0x180b && r <= 0x180f) || (r >= 0xfe00 && r <= 0xfe0f) || (r >= 0xe0100 && r <= 0xe01ef)
+}
+
 func doQuote(in string, level int) string {
 	var (
 		buf      = new(strings.Builder)
@@ -306,8 +304,9 @@ func doQuote(in string, level int) string {
 		n        = []rune(in)
 	)
 	buf.Grow(len(n))
-	for _, r := range n {
-		if !unicode.IsPrint(r) {
+	for i, r := range n {
+		//if !unicode.IsPrint(r) || unicode.Is(unicode.Mn, r) {
+		if !unicode.IsPrint(r) || isVariationSelector(r) {
 			// Only display the brief escapes for \e, \n, \r, and \t as these
 			// are fairly well-known. Who even knows what \v is?
 			if level == 0 {
@@ -337,6 +336,11 @@ func doQuote(in string, level int) string {
 				buf.WriteString("'")
 			}
 		} else {
+			// Always quote paths with leading and trailing spaces; hugely
+			// confusing otherwise.
+			if r == ' ' && (i == 0 || i == len(n)-1) {
+				dblQuote = true
+			}
 			if level == 1 && needQuote(r) {
 				dblQuote = true
 			}
@@ -354,10 +358,9 @@ func doQuote(in string, level int) string {
 }
 
 func needQuote(r rune) bool {
-	//return strings.ContainsAny(s, "|&;<>()$`\\\"' *?[]#~=%!")
 	switch r {
-	case '|', '&', ';', '<', '>', '(', ')', '$', '\\', '"', '\'',
-		' ', '*', '?', '[', ']', '#', '~', '=', '%', '!', '`':
+	case '|', '&', ';', '<', '>', '(', ')', '$', '\\', '"', '\'', ' ',
+		'*', '?', '[', ']', '#', '~', '=', '%', '!', '`', '{', '}':
 		return true
 	} // '
 	return false
