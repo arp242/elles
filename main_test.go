@@ -929,6 +929,15 @@ func TestWidth(t *testing.T) {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}
 	}
+	{
+		have := mustRun(t, "-lw10", "-w21")
+		want := norm(`
+		 0 │ 01:08 │ 0123456…
+		 0 │ 01:08 │ 0123456…`, "01:08", now)
+		if !reflect.DeepEqual(have, want) {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
 
 	{
 		have := mustRun(t, "-1w100")

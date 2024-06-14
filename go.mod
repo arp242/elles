@@ -5,7 +5,7 @@ go 1.22
 require (
 	golang.org/x/sys v0.21.0
 	zgo.at/termtext v1.5.0
-	zgo.at/zli v0.0.0-20240612231649-e2f7dd5d9303
+	zgo.at/zli v0.0.0-20240614180544-47534b1ce136
 )
 
 require (

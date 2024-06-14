@@ -101,7 +101,7 @@ func main() {
 		octal        = f.Bool(false, "o", "octal")
 		group        = f.Bool(false, "g", "group")
 	)
-	zli.F(f.Parse())
+	zli.F(f.Parse(zli.AllowMultiple()))
 	if colorBSD.Bool() && !color.Set() {
 		*color.Pointer() = "always"
 	}

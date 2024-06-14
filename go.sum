@@ -6,5 +6,5 @@ zgo.at/runewidth v0.1.0 h1:ED4PzJpYJlZMDEkoz+iPKjb5NrwbKnWPXDMJlNlfk9g=
 zgo.at/runewidth v0.1.0/go.mod h1:Ugl6FGPF5Ib/NRu2UAV2wVthEgYfEz51Bu/uyNbWZSw=
 zgo.at/termtext v1.5.0 h1:4p9GVUDYUR8oWvpxOZsO5ZrNSkA99bp8gXNKxKj+Kl0=
 zgo.at/termtext v1.5.0/go.mod h1:AcdAAiydkqSFadljJaEj9jv7bpyJxfQqGtPWyZCLenQ=
-zgo.at/zli v0.0.0-20240612231649-e2f7dd5d9303 h1:666JNMk0fNxvbqI1lK+F/bR3y9iK2l9W2ATQwLlAUsg=
-zgo.at/zli v0.0.0-20240612231649-e2f7dd5d9303/go.mod h1:0jjx+AGEkWOOQ0NtzbMnpko+H2G+aTg8mfCKqoc/BuA=
+zgo.at/zli v0.0.0-20240614180544-47534b1ce136 h1:Q0j5M5+5YGNaECQmKOcznyDYX3jZUCVN+c7GKUkoV8o=
+zgo.at/zli v0.0.0-20240614180544-47534b1ce136/go.mod h1:0jjx+AGEkWOOQ0NtzbMnpko+H2G+aTg8mfCKqoc/BuA=

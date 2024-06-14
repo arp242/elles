@@ -36,8 +36,9 @@ How to list it:
     -group-dirs      Group directories first. Alias: -group-directories-first.
     -n               Display user an group ID as number, rather than username.
     -L               Don't show symlink targets in -l output.
-    -w, -width=..    Maximum column width.
-    -o, -octal       File permissions as octal.
+    -w, -width=..    Maximum column width; longer columns will be trimmed. Set
+                     to 0 to disable.
+    -o, -octal       File permissions as octal instead of "rwx…".
 
 How to format paths:
 
