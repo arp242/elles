@@ -561,7 +561,9 @@ func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst boo
 	case "version":
 		sorter = func(a, b fs.FileInfo) int { return versCompare(a.Name(), b.Name()) }
 	case "width":
-		sorter = func(a, b fs.FileInfo) int { return cmp.Compare(len(a.Name()), len(b.Name())) }
+		// TODO: maybe make it sort by display width (with quotes and all of
+		// that)? That's what GNU ls does.
+		sorter = func(a, b fs.FileInfo) int { return cmp.Compare(len([]rune(a.Name())), len([]rune(b.Name()))) }
 	case "none", "none-all":
 		sorter, nameSort = nil, nil
 	default:

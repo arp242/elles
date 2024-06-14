@@ -382,6 +382,68 @@ func TestLongLong(t *testing.T) {
 	})
 }
 
+func TestSortMtime(t *testing.T) {
+	start(t)
+	touch(t, "a")
+	time.Sleep(10 * time.Millisecond) // If we don't sleep it both are written at the same time.
+	touch(t, "b")
+
+	{
+		have := strings.Split(mustRun(t, "-1t"), "\n")
+		want := []string{"b", "a"}
+		if !reflect.DeepEqual(have, want) {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+
+	rm(t, "a")
+	touch(t, "a")
+
+	{
+		have := strings.Split(mustRun(t, "-1t"), "\n")
+		want := []string{"a", "b"}
+		if !reflect.DeepEqual(have, want) {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+}
+
+func TestSortAtime(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		t.Skip("TODO: dunno why this fails; atime seems weird on macOS")
+	}
+	if runtime.GOOS == "windows" {
+		t.Skip("TODO: fix")
+	}
+
+	start(t)
+	touch(t, "a")
+	time.Sleep(10 * time.Millisecond) // If we don't sleep it both are written at the same time.
+	touch(t, "b")
+
+	{
+		have := strings.Split(mustRun(t, "-1tu"), "\n")
+		want := []string{"b", "a"}
+		if !reflect.DeepEqual(have, want) {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+
+	if _, err := os.ReadFile("a"); err != nil { // cat a.file
+		t.Fatal(err)
+	}
+	time.Sleep(10 * time.Millisecond)
+	echoAppend(t, "i am a", "b")
+
+	{
+		have := strings.Split(mustRun(t, "-1tu"), "\n")
+		want := []string{"a", "b"}
+		if !reflect.DeepEqual(have, want) {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+}
+
 func TestSortBtime(t *testing.T) {
 	supportsBtime(t, true)
 
@@ -469,6 +531,26 @@ func TestSortVersion(t *testing.T) {
 				t.Errorf("\nhave: %s\nwant: %s", have, tt)
 			}
 		})
+	}
+}
+
+// TODO: wrong!
+func TestSortWidth(t *testing.T) {
+	start(t)
+
+	mkdirAll(t, "subdir")
+	touch(t, "subdir/aaaaa")
+	touch(t, "subdir/bbb")
+	touch(t, "subdir/cccc")
+	touch(t, "subdir/d")
+	touch(t, "subdir/zz")
+	touch(t, "subdir/€")
+	touch(t, "subdir/a\nb")
+
+	have := strings.Fields(mustRun(t, "-W", "subdir"))
+	want := []string{"d", "€", "zz", "a$'\\n'b", "bbb", "cccc", "aaaaa"}
+	if !reflect.DeepEqual(have, want) {
+		t.Errorf("\nhave: %s\nwant: %s", have, want)
 	}
 }
 
@@ -1235,9 +1317,125 @@ func TestSpecialShell(t *testing.T) {
 		have := mustRun(t, "-aQC")
 		want := norm(`
 			"!"   "#"  "%"  "'"  ")"  ,    :    "<"  "?"  "\"  "\` + "`" + `"  "|"  "~"
-			"\""  "$"  "&"  "("  "*"  ...  ";"  ">"  "["  "]"  "{"   "}"`)
+			"\""  "$"  "&"  "("  "*"  ...  ";"  ">"  "["  "]"  "{"   "}"`) // "
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}
+	}
+}
+
+func TestDirFlag(t *testing.T) {
+	start(t)
+	mkdirAll(t, "a/b")
+
+	for _, p := range []string{".", pwd(t), "a"} {
+		o := mustRun(t, "-1d", p)
+		if o != p {
+			t.Fatalf("output not equal:\npath: %q\nout:  %q", p, o)
+		}
+	}
+}
+
+func TestGroupDirs(t *testing.T) {
+	start(t)
+
+	mkdirAll(t, "dir/b")
+	touch(t, "dir/a")
+	symlink(t, "b", "dir/bl")
+
+	have := strings.Fields(mustRun(t, "--group-dirs", "dir"))
+	want := []string{"b", "bl", "a"}
+	if !reflect.DeepEqual(have, want) {
+		t.Errorf("\nhave: %s\nwant: %s", have, want)
+	}
+
+	have = strings.Fields(mustRun(t, "--group-dir", "-d", "dir/a", "dir/b", "dir/bl"))
+	want = []string{"dir/b", "dir/bl", "dir/a"}
+	if !reflect.DeepEqual(have, want) {
+		t.Errorf("\nhave: %s\nwant: %s", have, want)
+	}
+}
+
+// Make sure 'ls' and 'ls -R' do the right thing when invoked with no arguments.
+func TestWithoutArguments(t *testing.T) {
+	start(t)
+
+	mkdirAll(t, "dir/subdir")
+	touch(t, "dir/subdir/file2")
+	touch(t, "exp")
+	touch(t, "out")
+	symlink(t, "f", "symlink")
+
+	{
+		have := strings.Fields(mustRun(t, "-1"))
+		want := []string{"dir", "exp", "out", "symlink"}
+		if !reflect.DeepEqual(have, want) {
+			t.Errorf("\nhave: %s\nwant: %s", have, want)
+		}
+	}
+
+	have := mustRun(t, "-R1")
+	want := norm(`
+		.:
+		dir
+		exp
+		out
+		symlink
+
+		dir:
+		subdir
+
+		dir/subdir:
+		file2`)
+	if have != want {
+		t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
+	}
+}
+
+func TestSymlinkLoop(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip()
+	}
+	start(t)
+	symlink(t, "loop", "loop")
+
+	loopError := func(s string) bool {
+		return strings.Contains(s, "too many levels of symbolic links") ||
+			strings.Contains(s, "exceeds MAXSYMLINKS")
+	}
+
+	if have := mustRun(t, "-1", "loop"); have != "loop" {
+		t.Error(have)
+	}
+	if have := mustRun(t, "-1l", "loop"); strings.Count(have, "\n") != 0 || !strings.Contains(have, "loop → loop") {
+		t.Error(have)
+	}
+	if have, ok := run(t, "-1H", "loop"); ok || !loopError(have) {
+		t.Error(ok, have)
+	}
+	if runtime.GOOS == "darwin" {
+		// TODO: on macOS it exits with 0
+		if have, ok := run(t, "-l1", "loop/"); !loopError(have) {
+			t.Errorf("%v\n%s", ok, have)
+		}
+	} else {
+		if have, ok := run(t, "-l1", "loop/"); ok || !loopError(have) {
+			t.Errorf("%v\n%s", ok, have)
+		}
+	}
+}
+
+// Dereference symlink arg if written with a trailing slash.
+func TestSymlinkSlash(t *testing.T) {
+	start(t)
+	mkdirAll(t, "dir")
+	touch(t, "dir/inside")
+	symlink(t, "dir", "symlink")
+
+	if have := mustRun(t, "-1", "symlink"); have != "symlink" {
+		t.Error(have)
+	}
+	if have := mustRun(t, "-1", "symlink/"); have != "inside" {
+		t.Error(have)
 	}
 }

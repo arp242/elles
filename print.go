@@ -359,10 +359,10 @@ func doQuote(in string, level int) string {
 
 func needQuote(r rune) bool {
 	switch r {
-	case '|', '&', ';', '<', '>', '(', ')', '$', '\\', '"', '\'', ' ',
+	case '|', '&', ';', '<', '>', '(', ')', '$', '\\', '"', '\'', ' ', // '
 		'*', '?', '[', ']', '#', '~', '=', '%', '!', '`', '{', '}':
 		return true
-	} // '
+	}
 	return false
 }
 

@@ -71,13 +71,13 @@ How to format paths:
 Sorting:
 
     -r, -reverse     Reverse sort order.
-    -S               Sort by file size, largest first.
-    -X               Sort by file extension.
-    -v               Sort by natural numbers within text.
-    -t               Sort by modification time, newest first.
-    -tc              Sort by creation ("birth") time, newest first.
-    -tu              Sort by access time, newest first.
-    -W               Sort by pathname width, shortest first.
+    -S               By file size, largest first.
+    -X               By file extension.
+    -v               By natural numbers within text.
+    -t               By modification time, newest first.
+    -tc              By creation ("birth") time, newest first.
+    -tu              By access time, newest first.
+    -W               By pathname width (number of codepoints), shortest first.
     -f               Don't sort, list in directory order. Implies -a.
     -U               Don't sort, list in directory order.
     -sort=..         Sort by …: none (-U), size (-S), time (-t), version (-v),
