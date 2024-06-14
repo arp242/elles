@@ -12,6 +12,9 @@ import (
 )
 
 func Atime(fi fs.FileInfo) time.Time {
+	if fi.Sys() == nil {
+		return time.Time{}
+	}
 	t := fi.Sys().(*syscall.Stat_t).Atim
 	return time.Unix(int64(t.Sec), int64(t.Nsec))
 }
@@ -32,6 +35,9 @@ func Btime(absdir string, fi fs.FileInfo) time.Time {
 		return time.Unix(s.Btime.Sec, int64(s.Btime.Nsec))
 	}
 
+	if fi.Sys() == nil {
+		return time.Time{}
+	}
 	t := fi.Sys().(*syscall.Stat_t).Ctim
 	return time.Unix(int64(t.Sec), int64(t.Nsec))
 }

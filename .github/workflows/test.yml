@@ -49,11 +49,13 @@ jobs:
         id:   'freebsd'
         uses: 'vmactions/freebsd-vm@v1'
         with:
-          prepare: 'pkg install -y go122'
+          prepare: |
+            pkg install -y go122
+            pw user add -n action -m
           run: |
             echo 'XXXXXX'
             go version
-            go122 test ./...
+            su action -c 'go122 test ./...'
 
   openbsd:
     name: 'test (openbsd)'
@@ -64,11 +66,13 @@ jobs:
         id:   'openbsd'
         uses: 'vmactions/openbsd-vm@v1'
         with:
-          prepare: 'pkg_add go'
+          prepare: |
+            useradd -mG wheel action
+            pkg_add go
           run: |
             echo 'XXXXXX'
             go version
-            go test ./...
+            su action -c 'go test ./...'
 
   netbsd:
     name: 'test (netbsd)'
@@ -79,26 +83,13 @@ jobs:
         id:   'netbsd'
         uses: 'vmactions/netbsd-vm@v1'
         with:
-          prepare: 'pkg_add go122'
+          prepare: |
+            useradd -mG wheel action
+            pkg_add go122
           run: |
             echo 'XXXXXX'
             /usr/pkg/bin/go122 version
-            /usr/pkg/bin/go122 test ./...
-
-  #dragonflybsd:
-  #  name: 'test (dragonflybsd)'
-  #  runs-on: 'ubuntu-latest'
-  #  steps:
-  #    - uses: 'actions/checkout@v4'
-  #    - name: 'test (dragonflybsd)'
-  #      id:   'dragonflybsd'
-  #      uses: 'vmactions/dragonflybsd-vm@v1'
-  #      with:
-  #        prepare: 'pkg install -y go'
-  #        run: |
-  #          echo 'XXXXXX'
-  #          go version
-  #          go test ./...
+            su action -c '/usr/pkg/bin/go122 test ./...'
 
   illumos:
     name: 'test (illumos)'
@@ -109,8 +100,12 @@ jobs:
       id:   'illumos'
       uses: 'vmactions/omnios-vm@v1'
       with:
-        prepare: 'pkg install go-122'
+        prepare: |
+          useradd action
+          pkg install go-122
         run: |
           echo 'XXXXXX'
+          export GOCACHE=/tmp/go-cache
+          export GOPATH=/tmp/go-path
           go version
-          go test ./...
+          su action -c 'go test ./...'

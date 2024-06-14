@@ -19,19 +19,31 @@ import (
 // TODO: unused at the moment; ls -l prints this, but I don't think I've ever
 // used it in 25 years. Should maybe add option though.
 func Numlinks(absdir string, fi fs.FileInfo) uint64 {
+	if fi.Sys() == nil {
+		return 0
+	}
 	return uint64(fi.Sys().(*syscall.Stat_t).Nlink)
 }
 
 func OwnerID(absdir string, fi fs.FileInfo) (string, string) {
+	if fi.Sys() == nil {
+		return "", ""
+	}
 	s := fi.Sys().(*syscall.Stat_t)
 	return strconv.FormatUint(uint64(s.Uid), 10), strconv.FormatUint(uint64(s.Gid), 10)
 }
 
 func Serial(absdir string, fi fs.FileInfo) uint64 {
+	if fi.Sys() == nil {
+		return 0
+	}
 	return fi.Sys().(*syscall.Stat_t).Ino
 }
 
 func Blocks(fi fs.FileInfo) int64 {
+	if fi.Sys() == nil {
+		return -1
+	}
 	return fi.Sys().(*syscall.Stat_t).Blocks
 }
 

@@ -90,14 +90,19 @@ func getCols(p printable, opt opts) cols {
 				cur = append(cur, col{s: " " + s, w: w})
 			}
 
-			var t string
-			switch opt.fullTime {
-			case 0:
-				t = shortTime(p.absdir, getTime(p.absdir, fi, opt.timeField))
-			case 1:
-				t = getTime(p.absdir, fi, opt.timeField).Format("2006-01-02 15:04:05")
+			var (
+				t  string
+				tt = getTime(p.absdir, fi, opt.timeField)
+			)
+			switch {
+			case tt.IsZero():
+				t = "????-??-??"
+			case opt.fullTime == 0:
+				t = shortTime(p.absdir, tt)
+			case opt.fullTime == 1:
+				t = tt.Format("2006-01-02 15:04:05")
 			default:
-				t = getTime(p.absdir, fi, opt.timeField).Format("2006-01-02 15:04:05.000000000 -07:00")
+				t = tt.Format("2006-01-02 15:04:05.000000000 -07:00")
 			}
 			cur = append(cur, col{s: t, w: len(t), prop: borderToLeft})
 
@@ -139,14 +144,19 @@ func getCols(p printable, opt opts) cols {
 			s, w := listSize(fi, p.absdir, opt.blockSize, opt.comma)
 			cur = append(cur, col{s: s, w: w})
 
-			var t string
-			switch opt.fullTime {
-			case 0:
-				t = getTime(p.absdir, fi, opt.timeField).Format("Jan _2 15:04")
-			case 1:
-				t = getTime(p.absdir, fi, opt.timeField).Format("2006-01-02 15:04:05")
+			var (
+				t  string
+				tt = getTime(p.absdir, fi, opt.timeField)
+			)
+			switch {
+			case tt.IsZero():
+				t = "????-??-??"
+			case opt.fullTime == 0:
+				t = tt.Format("Jan _2 15:04")
+			case opt.fullTime == 1:
+				t = tt.Format("2006-01-02 15:04:05")
 			default:
-				t = getTime(p.absdir, fi, opt.timeField).Format("2006-01-02 15:04:05.000000000 -07:00")
+				t = tt.Format("2006-01-02 15:04:05.000000000 -07:00")
 			}
 			cur = append(cur, col{s: t, w: len(t)})
 
@@ -233,37 +243,40 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 			ifset(colorLink, "@")
 		} else {
 			l, err := os.Readlink(filepath.Join(dir, fi.Name()))
+			// If the Readlink failed the stat almost certainly also failed;
+			// don't need to issue a separate error for this.
 			if err != nil {
-				zli.Errorf(err)
-			}
+				n += " → ???"
+				width += 6
+			} else {
+				fl := l
+				if !filepath.IsAbs(fl) {
+					fl = filepath.Join(dir, fl)
+				}
+				st, err := os.Stat(fl)
+				var (
+					c                = colorLink
+					targetC, targetR string
+				)
+				if err != nil {
+					if colorOrphan != "" {
+						c, targetC, targetR = colorOrphan, colorOrphan, reset
+					}
+					if !errors.Is(err, os.ErrNotExist) && !os2.IsELOOP(err) {
+						zli.Errorf(err)
+					}
+				} else if st.IsDir() {
+					targetC, targetR = colorDir, reset
+					if opt.classify {
+						targetR += "/"
+						width += 1
+					}
+				}
 
-			fl := l
-			if !filepath.IsAbs(fl) {
-				fl = filepath.Join(dir, fl)
+				l = doQuote(l, opt.quote)
+				n = c + n + reset + " → " + targetC + l + targetR
+				width += 3 + len(l)
 			}
-			st, err := os.Stat(fl)
-			var (
-				c                = colorLink
-				targetC, targetR string
-			)
-			if err != nil {
-				if colorOrphan != "" {
-					c, targetC, targetR = colorOrphan, colorOrphan, reset
-				}
-				if !errors.Is(err, os.ErrNotExist) && !os2.IsELOOP(err) {
-					zli.Errorf(err)
-				}
-			} else if st.IsDir() {
-				targetC, targetR = colorDir, reset
-				if opt.classify {
-					targetR += "/"
-					width += 1
-				}
-			}
-
-			l = doQuote(l, opt.quote)
-			n = c + n + reset + " → " + targetC + l + targetR
-			width += 3 + len(l)
 		}
 	}
 	if !didColor {
@@ -423,6 +436,9 @@ func groupDigits(s string) string {
 }
 
 func listSize(fi fs.FileInfo, absdir, blockSize string, comma bool) (string, int) {
+	if fi.Size() == -1 {
+		return "???", 4
+	}
 	switch blockSize {
 	case "s":
 		s := strconv.FormatInt(os2.Blocks(fi), 10)

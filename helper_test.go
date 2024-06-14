@@ -92,7 +92,7 @@ func run(t *testing.T, args ...string) (o string, ok bool) {
 		ok = recover() == nil
 		o = strings.TrimSuffix(zli.Stdout.(*bytes.Buffer).String(), "\n")
 	}()
-	os.Args = append([]string{"elles-test"}, args...)
+	os.Args = append([]string{"elles"}, args...)
 	main()
 	return o, ok
 }
@@ -177,7 +177,7 @@ func supportsDevice(t *testing.T, skip bool) bool {
 			t.Skipf("%s does not support device nodes", runtime.GOOS)
 		}
 		return false
-	case "freebsd", "netbsd", "openbsd", "dragonfly", "darwin":
+	case "freebsd", "netbsd", "openbsd", "dragonfly", "darwin", "illumos", "solaris":
 		if skip {
 			t.Skipf("%s requires root permissions to create device nodes", runtime.GOOS)
 		}

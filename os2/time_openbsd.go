@@ -9,6 +9,9 @@ import (
 )
 
 func Atime(fi fs.FileInfo) time.Time {
+	if fi.Sys() == nil {
+		return time.Time{}
+	}
 	t := fi.Sys().(*syscall.Stat_t).Atim
 	return time.Unix(t.Sec, t.Nsec)
 }

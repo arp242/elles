@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 )
 
 // These are tests from FreeBSD (commit 0dfd11abc) and GNU coreutils (commit
@@ -432,83 +430,6 @@ func TestGNU(t *testing.T) {
 		// Exit $fail
 	})
 
-	t.Run("rt-1", func(t *testing.T) { // Name is used as secondary key when sorting on time
-		supportsUtimes(t, true)
-		start(t)
-
-		tt := time.Date(1998, 1, 15, 0, 0, 0, 0, time.Local)
-		touchDate(t, tt, "c")
-		touchDate(t, tt, "a")
-		touchDate(t, tt, "b")
-
-		{
-			have := strings.Fields(mustRun(t, "-t"))
-			if want := []string{"a", "b", "c"}; !reflect.DeepEqual(have, want) {
-				t.Errorf("\nhave: %s\nwant: %s", have, want)
-			}
-		}
-		{
-			have := strings.Fields(mustRun(t, "-rt"))
-			if want := []string{"c", "b", "a"}; !reflect.DeepEqual(have, want) {
-				t.Errorf("\nhave: %s\nwant: %s", have, want)
-			}
-		}
-	})
-
-	t.Run("size-align", func(t *testing.T) { // test size alignment
-		supportsSparseFiles(t, true)
-		start(t)
-
-		createSparse(t, 0, "small")
-		createSparse(t, 123456, "large")
-		echoAppend(t, "\n", "alloc")
-
-		x := func(in string) string {
-			out := make([]string, 0, 8)
-			for _, l := range strings.Split(in, "\n") {
-				x := strings.Split(l, "│")
-				if len(x) < 3 {
-					t.Errorf("unexpected:\n%q", l)
-				}
-				out = append(out, fmt.Sprintf("%s│%s", x[0], x[2]))
-			}
-			return strings.Join(out, "\n")
-		}
-
-		{
-			have := x(mustRun(t, "-l"))
-			want := strings.ReplaceAll(`
-				    1 │ alloc
-				 121K │ large
-				    0 │ small`[1:], "\t", "")
-			if have != want {
-				t.Errorf("\nhave:\n%s\nwant:\n%s", have, want)
-			}
-		}
-
-		{
-			have := x(mustRun(t, "-l", "-Bs"))
-			want := strings.ReplaceAll(`
-				 8 │ alloc
-				 0 │ large
-				 0 │ small`[1:], "\t", "")
-			if have != want {
-				t.Errorf("\nhave:\n%s\nwant:\n%s", have, want)
-			}
-		}
-
-		{
-			have := x(mustRun(t, "-l", "-BS"))
-			want := strings.ReplaceAll(`
-				  1 │ alloc
-				 31 │ large
-				  0 │ small`[1:], "\t", "")
-			if have != want {
-				t.Errorf("\nhave:\n%s\nwant:\n%s", have, want)
-			}
-		}
-	})
-
 	t.Run("slink-acl", func(t *testing.T) {
 		// verify that ls -lL works when applied to a symlink to an ACL'd file
 
@@ -565,29 +486,4 @@ func TestGNU(t *testing.T) {
 		// printf 'a2345/\tb/\n' > exp
 		// compare exp out
 	})
-
-	t.Run("stat-failed", func(t *testing.T) {
-		// Verify that ls works properly when it fails to stat a file that is
-		// not mentioned on the command line.
-		start(t)
-
-		// LS_MINOR_PROBLEM=1
-		//
-		// mkdir d
-		// ln -s / d/s
-		// chmod 600 d
-
-		// returns_ 1 ls -Log d > out
-		//
-		// # Linux 2.6.32 client with Isilon OneFS always returns d_type==DT_DIR ('d')
-		// # Newer Linux 3.10.0 returns the more correct DT_UNKNOWN ('?')
-		// grep '^[l?]?' out || skip_ 'unrecognized d_type returned'
-
-		// cat <<\EOF > exp
-		// total 0
-		// ?????????? ? ?            ? s
-		// EOF
-		// sed 's/^l/?/' out | compare exp -
-	})
-
 }

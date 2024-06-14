@@ -448,7 +448,10 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, deref, nostat bo
 					pr.fi = append(pr.fi, fakeFileInfo{l})
 				} else {
 					fi, err := l.Info()
-					if !errs.Append(err) {
+					if errs.Append(err) {
+						// Don't skip the entire file, just don't add stat info.
+						pr.fi = append(pr.fi, fakeFileInfo{l})
+					} else {
 						pr.fi = append(pr.fi, fi)
 					}
 				}
@@ -587,7 +590,6 @@ func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst boo
 		}
 	}
 	if dirsFirst {
-		// Symlink to dir should be counted
 		isdir := func(dir string, fi fs.FileInfo) bool {
 			if fi.IsDir() {
 				return true
@@ -595,6 +597,7 @@ func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst boo
 			if fi.Mode()&fs.ModeSymlink == 0 {
 				return false
 			}
+			// Symlink to dir should be counted as a "directory".
 			l, err := os.Readlink(filepath.Join(dir, fi.Name()))
 			if err != nil {
 				return false
@@ -675,7 +678,7 @@ func isdigit(c rune) bool { return c >= '0' && c <= '9' }
 
 type fakeFileInfo struct{ fs.DirEntry }
 
-func (fakeFileInfo) ModTime() time.Time  { panic("fakeFileInfo.ModTime") }
-func (fakeFileInfo) Sys() any            { panic("fakeFileInfo.ModTime") }
-func (fakeFileInfo) Size() int64         { panic("fakeFileInfo.ModTime") }
+func (fakeFileInfo) ModTime() time.Time  { return time.Time{} }
+func (fakeFileInfo) Sys() any            { return nil }
+func (fakeFileInfo) Size() int64         { return -1 }
 func (f fakeFileInfo) Mode() fs.FileMode { return f.Type() }
