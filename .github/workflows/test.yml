@@ -1,9 +1,8 @@
 name: 'test'
 on:
+  push:
   pull_request:
     paths: ['**.go', 'go.mod', '.github/workflows/*']
-  push:
-    branches: ['master']
 
 jobs:
   linux:
@@ -26,18 +25,20 @@ jobs:
       - name: 'test (windows)'
         run: 'go test ./...'
 
-  # Keep getting "signal: killed" on CI with different tests. Can't repro
-  # locally. It used to work fine, and seemed to have started after an innocent
-  # README update? It's probably a real bug though(?) But just skip for now.
-  #macos:
-  #  name: 'test (macos)'
-  #  runs-on: 'macos-latest'
-  #  steps:
-  #    - uses: 'actions/checkout@v4'
-  #    - uses: 'WillAbides/setup-go-faster@v1'
-  #      with: {go-version: '1.22'}
-  #    - name: 'test (macos)'
-  #      run: 'go test -v ./...'
+  macos:
+    name: 'test (macos)'
+    # TODO: if if I use macos-latest (14, on ARM) it will exit with "signal:
+    # killed" after about ~3.5 minutes, on different tests.
+    #
+    # I don't know if this is a macOS 14 or ARM problem (my VM is an amd64 macOS
+    # 13), but seems odd it would be a problem in elles(?)
+    runs-on: 'macos-13'
+    steps:
+      - uses: 'actions/checkout@v4'
+      - uses: 'WillAbides/setup-go-faster@v1'
+        with: {go-version: '1.22'}
+      - name: 'test (macos)'
+        run: 'go test ./...'
 
   freebsd:
     name: 'test (freebsd)'

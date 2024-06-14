@@ -26,7 +26,8 @@ There are binaries on the [releases] page; or to compile from source:
 Drop the `-tags=osusergo` to use libc for user lookups; only needed if you have
 a complex setup with NIS or LDAP or whatnot. This will require a C compiler.
 
-The Windows version is somewhat experimental.
+It should work well on Linux, {Free,Net,Open}BSD, macOS, and illumos. The
+Windows version is somewhat experimental.
 
 [releases]: https://github.com/arp242/elles/releases
 

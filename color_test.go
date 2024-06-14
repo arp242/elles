@@ -8,7 +8,21 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"zgo.at/zli"
 )
+
+func clearColors() {
+	zli.WantColor = false
+	for _, c := range []*string{
+		&colorNormal, &colorFile, &colorDir, &colorLink, &colorPipe, &colorSocket,
+		&colorBlockDev, &colorCharDev, &colorOrphan, &colorExec, &colorDoor,
+		&colorSuid, &colorSgid, &colorSticky, &colorOtherWrite,
+		&colorOtherWriteStick, &reset,
+	} {
+		*c = ""
+	}
+}
 
 // Just print out stuff for manual verification; this is not likely to regress,
 // and this is easier for now.

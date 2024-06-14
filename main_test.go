@@ -1026,8 +1026,8 @@ func TestRemovedDirectory(t *testing.T) {
 }
 
 func TestCase(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("Windows doesn't like two pathnames differing only in casing")
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		t.Skipf("%s doesn't like two pathnames differing only in casing", runtime.GOOS)
 	}
 
 	start(t)

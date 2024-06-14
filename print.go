@@ -425,8 +425,7 @@ func groupDigits(s string) string {
 func listSize(fi fs.FileInfo, absdir, blockSize string, comma bool) (string, int) {
 	switch blockSize {
 	case "s":
-		b := os2.Blocks(fi)
-		s := strconv.FormatInt(b, 10)
+		s := strconv.FormatInt(os2.Blocks(fi), 10)
 		if comma {
 			s = groupDigits(s)
 		}

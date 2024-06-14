@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"zgo.at/zli"
 )
 
 // These are tests from FreeBSD (commit 0dfd11abc) and GNU coreutils (commit
@@ -785,16 +783,4 @@ func TestGNU(t *testing.T) {
 			t.Error(have)
 		}
 	})
-}
-
-func clearColors() {
-	zli.WantColor = false
-	for _, c := range []*string{
-		&colorNormal, &colorFile, &colorDir, &colorLink, &colorPipe, &colorSocket,
-		&colorBlockDev, &colorCharDev, &colorOrphan, &colorExec, &colorDoor,
-		&colorSuid, &colorSgid, &colorSticky, &colorOtherWrite,
-		&colorOtherWriteStick, &reset,
-	} {
-		*c = ""
-	}
 }
