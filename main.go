@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"sort"
 	"strconv"
@@ -437,7 +438,7 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, deref, nostat bo
 			}
 			var subdirs []string
 			for _, l := range ls {
-				if l.Name()[0] == '.' && !all {
+				if os2.Hidden(ad, l) && !all {
 					continue
 				}
 				//if !l.IsDir() && dirsOnly { continue }
@@ -483,6 +484,17 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, deref, nostat bo
 		}
 	}
 	for _, a := range args {
+		// Make sure "ls /" and "ls C:" work on Windows.
+		if runtime.GOOS == "windows" {
+			if a == "/" {
+				wd, err := os.Getwd()
+				if err == nil {
+					a = filepath.VolumeName(wd) + `\`
+				}
+			} else if len(a) == 2 && a[1] == ':' {
+				a += `\`
+			}
+		}
 		addArg(a)
 	}
 	return toPrint

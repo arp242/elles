@@ -16,7 +16,8 @@ elles prints directory contents. https://github.com/arp242/elles
 
 What to list:
 
-    -a, -all         Show entries starting with . (except . and ..).
+    -a, -all         Show entries starting with . (except . and ..) or the
+                     "hidden" attribute (on Windows)
     -d, -directory   List directories themselves, rather than their contents.
     -H               Follow symlinks of paths given as commandline arguments.
     -R, -recursive   List subdirectories recursively.
