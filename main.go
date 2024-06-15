@@ -68,7 +68,7 @@ func main() {
 		prDir        = f.Bool(false, "d", "directory")
 		one          = f.Bool(!isTerm, "1")
 		cols         = f.Bool(isTerm, "C")
-		hyperlink    = f.Optional().String("never", "hyperlink")
+		hyperlink    = f.Optional().String("never", "hyperlink", "hyper")
 		color        = f.Optional().String("auto", "color", "colour")
 		colorBSD     = f.Bool(false, "G")
 		sortReverse  = f.Bool(false, "r", "reverse")

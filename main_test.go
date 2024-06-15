@@ -5,14 +5,19 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/user"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"zgo.at/elles/os2"
 )
+
+// Includes tests converted from FreeBSD (commit 0dfd11abc) and GNU coreutils
+// (commit bbc972b).
 
 func TestGroupDigits(t *testing.T) {
 	tests := []struct {
@@ -596,6 +601,8 @@ func TestSortVersion(t *testing.T) {
 		{"a", "z"},
 		{"a2", "z100"},
 		{"2b", "100a"},
+
+		//{"000", "00", "01", "010", "09", "0", "1", "9", "10"},
 	}
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
@@ -1588,6 +1595,60 @@ func TestUnreadable(t *testing.T) {
 			elles: lstat dir/link: permission denied`)
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+}
+
+// Ensure that ls -l works on files with nameless uid and/or gid
+func TestNamelessUID(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip() // TODO
+	}
+
+	hasRoot(t, true)
+
+	var uid, gid int
+	for i := range 16 * 1024 {
+		i += 1000
+		n := strconv.Itoa(i)
+		if uid == 0 {
+			_, err := user.LookupId(n)
+			if err != nil {
+				uid = i
+			}
+		}
+		if gid == 0 {
+			_, err := user.LookupGroupId(n)
+			if err != nil && i != uid {
+				gid = i
+			}
+		}
+		if uid != 0 && gid != 0 {
+			break
+		}
+	}
+	if uid == 0 {
+		t.Error("couldn't find a nameless UID")
+	}
+	if gid == 0 {
+		t.Error("couldn't find a nameless GID")
+	}
+
+	start(t)
+	touch(t, "file")
+	mkdirAll(t, "dir")
+	if err := os.Chown("file", uid, gid); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chown("dir", uid, gid); err != nil {
+		t.Fatal(err)
+	}
+
+	have := strings.Split(mustRun(t, "-ll"), "\n")
+	want := fmt.Sprintf("%d :%d", uid, gid)
+	for _, h := range have {
+		if !strings.Contains(h, want) {
+			t.Error(h)
 		}
 	}
 }

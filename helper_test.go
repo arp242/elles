@@ -143,6 +143,18 @@ func isCI() bool {
 	return ok
 }
 
+func hasRoot(t *testing.T, skip bool) bool {
+	u, err := user.Current()
+	if err == nil && u.Uid == "0" {
+		return true
+	}
+
+	if skip {
+		t.Skipf("current UID %q is not root", u.Uid)
+	}
+	return false
+}
+
 func supportsSparseFiles(t *testing.T, skip bool) bool {
 	tmp := t.TempDir()
 

@@ -64,9 +64,9 @@ How to format paths:
     -Q               Quote paths with special shell characters or spaces; add
                      twice to always quote everything.
     -trim, -no-trim  Trim pathnames if they're too long to fit on the screen.
-                     Only works for interactive terminals of when -w is set.
-                     -no-trim turns this off, and takes precedence over -trim,
-                     so you can set -trim from an alias and turn it off.
+                     Only works for interactive terminals or when -w is set.
+                     -no-trim turns this off and takes precedence over -trim (so
+                     you can set -trim from an alias and turn it off).
 
 Sorting:
 
@@ -87,12 +87,12 @@ Other:
 
     -help            Print this help and edit.
     -version         Print version and exit.
-    -completion=..   Print completion shell. Supported shells: "zsh".
+    -completion=..   Print shell completion file. Supported shells: "zsh".
     -manpage         Print manpage version of this help.
 
 Environment:
 
-    COLUMNS          Terminal width; falls back to ioctl if not set or if 0.
+    COLUMNS          Terminal width; falls back to ioctl if not set or 0.
     TZ               Timezone to use to for displaying dates.
     ELLES_COLORS     Colour configuration; see "Colours" section.
     LS_COLORS
