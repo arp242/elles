@@ -931,6 +931,180 @@ func TestHFlag(t *testing.T) {
 	}
 }
 
+func TestLFlag(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip()
+	}
+
+	testFixedSizeWidth = true
+	defer func() { testFixedSizeWidth = false }()
+	tmp := start(t)
+
+	now := time.Now().Format("15:04")
+	mkdirAll(t, "dir")
+	touch(t, "dir/file")
+	echoTrunc(t, strings.Repeat("a", 6666), "file-1")
+	touch(t, "file-2")
+	symlink(t, "file-1", "link-file-1")
+	symlink(t, "file-2", "link-file-2")
+	symlink(t, "dir", "link-dir")
+	st, err := os.Stat("dir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dsz, _ := listSize(st, "", "", false)
+	repl := []string{"21:35", now, "TMPDIR", tmp, "DIRSZ", fmt.Sprintf("%5s", dsz)}
+
+	{
+		have := mustRun(t, "-CL")
+		want := "dir  file-1  file-2  link-dir  link-file-1  link-file-2"
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+
+	{
+		have := mustRun(t, "-lL")
+		want := norm(`
+			 DIRSZ │ 21:35 │ dir
+			  6.5K │ 21:35 │ file-1
+			     0 │ 21:35 │ file-2
+			 DIRSZ │ 21:35 │ link-dir
+			  6.5K │ 21:35 │ link-file-1
+			     0 │ 21:35 │ link-file-2`,
+			repl...)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+
+	{ // Make sure we sort by correct size
+		have := mustRun(t, "-lLS")
+		want := norm(`
+			  6.5K │ 21:35 │ file-1
+			  6.5K │ 21:35 │ link-file-1
+			 DIRSZ │ 21:35 │ dir
+			 DIRSZ │ 21:35 │ link-dir
+			     0 │ 21:35 │ file-2
+			     0 │ 21:35 │ link-file-2`,
+			repl...)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+	{ // And width
+		have := mustRun(t, "-lLW")
+		want := norm(`
+			 DIRSZ │ 21:35 │ dir
+			  6.5K │ 21:35 │ file-1
+			     0 │ 21:35 │ file-2
+			 DIRSZ │ 21:35 │ link-dir
+			  6.5K │ 21:35 │ link-file-1
+			     0 │ 21:35 │ link-file-2`,
+			repl...)
+		if have != want {
+			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+		}
+	}
+
+	t.Run("orphan", func(t *testing.T) {
+		symlink(t, "orphan", "link-orphan")
+		defer rm(t, "link-orphan")
+
+		{
+			have := mustRun(t, "-CL")
+			want := "dir  file-1  file-2  link-dir  link-file-1  link-file-2  link-orphan"
+			if have != want {
+				t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+			}
+		}
+		{
+			have, ok := run(t, "-CFL")
+			if ok {
+				t.Error("exit 0")
+			}
+			want := norm(`
+				dir/  file-1  file-2  link-dir/  link-file-1  link-file-2  link-orphan
+				elles: stat TMPDIR/link-orphan: no such file or directory`,
+				repl...)
+			if have != want {
+				t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+			}
+		}
+
+		{
+			have, ok := run(t, "-lL")
+			if ok {
+				t.Error("exit 0")
+			}
+			want := norm(`
+				 DIRSZ │      21:35 │ dir
+				  6.5K │      21:35 │ file-1
+				     0 │      21:35 │ file-2
+				 DIRSZ │      21:35 │ link-dir
+				  6.5K │      21:35 │ link-file-1
+				     0 │      21:35 │ link-file-2
+				   ??? │ ????-??-?? │ link-orphan
+				elles: stat TMPDIR/link-orphan: no such file or directory`,
+				repl...)
+			if have != want {
+				t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+			}
+		}
+	})
+
+	t.Run("loop", func(t *testing.T) {
+		msg := `too many levels of symbolic links`
+		if runtime.GOOS == "solaris" || runtime.GOOS == "illumos" {
+			msg = `number of symbolic links encountered during path name traversal exceeds MAXSYMLINKS`
+		}
+
+		symlink(t, "link-loop", "link-loop")
+		defer rm(t, "link-loop")
+
+		{
+			have := mustRun(t, "-CL")
+			want := "dir  file-1  file-2  link-dir  link-file-1  link-file-2  link-loop"
+			if have != want {
+				t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+			}
+		}
+		{
+			have, ok := run(t, "-CFL")
+			if ok {
+				t.Error("exit 0")
+			}
+			want := norm(`
+				dir/  file-1  file-2  link-dir/  link-file-1  link-file-2  link-loop
+				elles: stat TMPDIR/link-loop: ERRMSG`,
+				append([]string{"ERRMSG", msg}, repl...)...)
+			if have != want {
+				t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+			}
+		}
+
+		{
+			have, ok := run(t, "-lL")
+			if ok {
+				t.Error("exit 0")
+			}
+			want := norm(`
+				 DIRSZ │      21:35 │ dir
+				  6.5K │      21:35 │ file-1
+				     0 │      21:35 │ file-2
+				 DIRSZ │      21:35 │ link-dir
+				  6.5K │      21:35 │ link-file-1
+				     0 │      21:35 │ link-file-2
+				   ??? │ ????-??-?? │ link-loop
+				elles: stat TMPDIR/link-loop: ERRMSG`,
+				append([]string{"ERRMSG", msg}, repl...)...)
+			if have != want {
+				t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
+			}
+		}
+	})
+}
+
 func TestFilesizes(t *testing.T) {
 	var (
 		kb = int64(1024)

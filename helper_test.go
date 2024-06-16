@@ -60,30 +60,6 @@ var userinfo = func() uinfo {
 	}
 }()
 
-// Get size of (empty) direcrory; this differs per filesystem.
-//
-// To test with e.g. XFS on Linux:
-//
-// dd if=/dev/zero of=/tmp/img bs=1M count=300
-// mkfs.xfs /tmp/img ./tmp
-// doas mount /tmp/img ./tmp
-// doas chown martin tmp
-//
-// export TMPDIR=./tmp/tmp
-// go test
-var dirsize = func() int {
-	tmp, err := os.MkdirTemp("", "")
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(tmp)
-	st, err := os.Stat(tmp)
-	if err != nil {
-		panic(err)
-	}
-	return int(st.Size())
-}()
-
 var join = filepath.Join
 
 func run(t *testing.T, args ...string) (o string, ok bool) {
@@ -133,6 +109,10 @@ func norm(s string, repl ...string) string {
 func start(t *testing.T) string {
 	t.Helper()
 	tmp := t.TempDir()
+	tmp, err := filepath.EvalSymlinks(tmp) // for macOS
+	if err != nil {
+		t.Fatal(err)
+	}
 	cd(t, tmp)
 	t.Cleanup(func() { cd(t, mydir) })
 	return tmp

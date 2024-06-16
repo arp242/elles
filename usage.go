@@ -19,7 +19,8 @@ What to list:
     -a, -all         Show entries starting with . (except . and ..) or the
                      "hidden" attribute (on Windows)
     -d, -directory   List directories themselves, rather than their contents.
-    -H               Follow symlinks of paths given as commandline arguments.
+    -H               Follow symlinks of commandline arguments.
+    -L               Follow all symlinks.
     -R, -recursive   List subdirectories recursively.
     -i, -inode       Print inode numbers.
     -g, -group       Always display the group by name in -ll; by default it's
@@ -36,7 +37,6 @@ How to list it:
                      overridden with this.
     -group-dirs      Group directories first. Alias: -group-directories-first.
     -n               Display user an group ID as number, rather than username.
-    -L               Don't show symlink targets in -l output.
     -w, -width=..    Maximum column width; longer columns will be trimmed. Set
                      to 0 to disable.
     -o, -octal       File permissions as octal instead of "rwx…".

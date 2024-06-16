@@ -44,8 +44,7 @@ type (
 		numericUID, group, hyperlink       bool
 		blockSize, timeField               string
 		one, cols, recurse, inode          bool
-		noLinkTarget, trim                 bool
-		octal                              bool
+		trim, octal, derefAll              bool
 	}
 )
 
@@ -106,7 +105,7 @@ func getCols(p printable, opt opts) cols {
 			}
 			cur = append(cur, col{s: t, w: len(t), prop: borderToLeft})
 
-			n, w := decoratePath(fp, afp, fi, opt, !opt.noLinkTarget, !p.isFiles)
+			n, w := decoratePath(fp, afp, fi, opt, true, !p.isFiles)
 			cur = append(cur, col{s: n, w: w, prop: borderToLeft | alignNone})
 		} else {
 			if opt.inode {
@@ -160,7 +159,7 @@ func getCols(p printable, opt opts) cols {
 			}
 			cur = append(cur, col{s: t, w: len(t)})
 
-			n, w := decoratePath(fp, afp, fi, opt, !opt.noLinkTarget, !p.isFiles)
+			n, w := decoratePath(fp, afp, fi, opt, true, !p.isFiles)
 			cur = append(cur, col{s: n, w: w, prop: borderToLeft | alignNone})
 		}
 
@@ -239,7 +238,11 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 
 	// Symlink
 	case fi.Mode()&fs.ModeSymlink != 0:
-		if !linkDest {
+		if opt.derefAll {
+			// -L and unresolvable symlinks: since resolving it fails earlier on
+			// it's still a link here, but we don't really want to display it as
+			// such.
+		} else if !linkDest {
 			ifset(colorLink, "@")
 		} else {
 			l, err := os.Readlink(filepath.Join(dir, fi.Name()))
@@ -435,9 +438,12 @@ func groupDigits(s string) string {
 	return string(n)
 }
 
+// Only used for the default "-h" sizes
+var testFixedSizeWidth bool
+
 func listSize(fi fs.FileInfo, absdir, blockSize string, comma bool) (string, int) {
 	if fi.Size() == -1 {
-		return "???", 4
+		return "???", 3
 	}
 	switch blockSize {
 	case "s":
@@ -490,6 +496,9 @@ func listSize(fi fs.FileInfo, absdir, blockSize string, comma bool) (string, int
 		}
 		if comma {
 			s = groupDigits(s)
+		}
+		if testFixedSizeWidth {
+			return fmt.Sprintf("%5s", s), 5
 		}
 		return s, len(s)
 	}

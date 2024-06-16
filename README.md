@@ -114,10 +114,6 @@ list of a few items, but has rather grown.
 - `-a` works like `-A`; I don't see why you ever want to include `.` and `..`;
   seems like backwards compatibility with 1971 Unix.
 
-- `-L` (dereference ALL symlinks) is not implemented; don't see why you'd ever
-  want to follow *all* symlinks. Instead, `-L` prevents showing the symlink
-  targets in `-l`.
-
 - `-m` for CSV-y "Stream output format" is not implemented. Doesn't seem too
   useful and also error-prone (doesn't escape `,`). Use shell globs or `-json`.
 

@@ -81,8 +81,8 @@ func main() {
 		sortNoneAll  = f.Bool(false, "f")
 		sortFlag     = f.String("name", "sort")
 		dirsFirst    = f.Bool(false, "group-dir", "group-dirs", "group-directories", "group-directories-first")
-		deref        = f.Bool(false, "H")
-		noLinkTarget = f.Bool(false, "L")
+		derefCmdline = f.Bool(false, "H")
+		derefAll     = f.Bool(false, "L")
 		recurse      = f.Bool(false, "R", "recursive")
 		classify     = f.Bool(false, "F")
 		dirSlash     = f.Bool(false, "p")
@@ -193,7 +193,8 @@ func main() {
 	errs := &errGroup{MaxSize: 100}
 
 	// Gather list to print.
-	toPrint := gather(f.Args, errs, all.Bool(), recurse.Bool(), prDir.Bool(), deref.Bool(), nostat)
+	toPrint := gather(f.Args, errs, all.Bool(), recurse.Bool(), prDir.Bool(),
+		derefCmdline.Bool(), derefAll.Bool(), nostat)
 
 	// Order it.
 	order(toPrint, sortFlag.String(), timeField, sortReverse.Bool(), dirsFirst.Bool())
@@ -205,25 +206,25 @@ func main() {
 	}
 
 	opt := opts{
-		blockSize:    blockSize.String(),
-		classify:     classify.Bool(),
-		cols:         cols.Bool(),
-		comma:        comma.Bool(),
-		dirSlash:     dirSlash.Bool(),
-		fullTime:     fullTime.Int(),
-		group:        group.Bool(),
-		hyperlink:    doLink,
-		inode:        inode.Bool(),
-		list:         list.Int(),
-		noLinkTarget: noLinkTarget.Bool(),
-		numericUID:   numericUID.Bool(),
-		octal:        octal.Bool(),
-		one:          one.Bool(),
-		quote:        quote.Int(),
-		recurse:      recurse.Bool(),
-		timeField:    timeField,
-		trim:         trim.Bool(),
-		maxColWidth:  width.Int(),
+		blockSize:   blockSize.String(),
+		classify:    classify.Bool(),
+		cols:        cols.Bool(),
+		comma:       comma.Bool(),
+		dirSlash:    dirSlash.Bool(),
+		fullTime:    fullTime.Int(),
+		group:       group.Bool(),
+		hyperlink:   doLink,
+		inode:       inode.Bool(),
+		list:        list.Int(),
+		numericUID:  numericUID.Bool(),
+		octal:       octal.Bool(),
+		one:         one.Bool(),
+		quote:       quote.Int(),
+		recurse:     recurse.Bool(),
+		timeField:   timeField,
+		trim:        trim.Bool(),
+		maxColWidth: width.Int(),
+		derefAll:    derefAll.Bool(),
 	}
 
 	draw(toPrint, errs, opt, cols.Set())
@@ -384,13 +385,13 @@ func sum(s []int) int {
 }
 
 // Gather list of everything we want to print.
-func gather(args []string, errs *errGroup, all, recurse, prDir, deref, nostat bool) []printable {
+func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefAll, nostat bool) []printable {
 	var (
 		toPrint    = make([]printable, 0, 16)
 		filesIndex = -1 // index in toPrint for individual files.
 		stat       = os.Lstat
 	)
-	if deref {
+	if derefCmd {
 		stat = os.Stat
 	}
 	//cwd, err := os.Getwd()
@@ -447,7 +448,12 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, deref, nostat bo
 				if nostat {
 					pr.fi = append(pr.fi, fakeFileInfo{l})
 				} else {
-					fi, err := l.Info()
+					var fi fs.FileInfo
+					if derefAll {
+						fi, err = os.Stat(filepath.Join(ad, l.Name()))
+					} else {
+						fi, err = l.Info()
+					}
 					if errs.Append(err) {
 						// Don't skip the entire file, just don't add stat info.
 						pr.fi = append(pr.fi, fakeFileInfo{l})
