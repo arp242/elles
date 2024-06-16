@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/user"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -1587,12 +1588,16 @@ func TestSpecialShell(t *testing.T) {
 
 func TestDirFlag(t *testing.T) {
 	start(t)
-	mkdirAll(t, "a/b")
+	mkdirAll(t, "dir1/dir2/dir3")
 
-	for _, p := range []string{".", pwd(t), "a"} {
-		o := mustRun(t, "-1d", p)
-		if o != p {
-			t.Fatalf("output not equal:\npath: %q\nout:  %q", p, o)
+	for _, p := range []string{".", "..", "./", "../.", pwd(t), filepath.Join(pwd(t), "."),
+		"dir1", "dir1/dir2", "dir1/dir2/dir3",
+		"dir1/", "dir1/dir2/", ".//dir1//",
+	} {
+		have := mustRun(t, "-1d", p)
+		p = strings.TrimSuffix(filepath.ToSlash(filepath.Clean(p)), string([]rune{filepath.Separator}))
+		if have != p {
+			t.Errorf("output not equal to input:\npath: %q\nhave: %q", p, have)
 		}
 	}
 }

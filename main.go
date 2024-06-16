@@ -471,6 +471,9 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefA
 				addArg(s)
 			}
 		} else { /// Single file.
+			if prDir {
+				a = strings.TrimRight(a, "/")
+			}
 			d := strings.TrimSuffix(a, fi.Name())
 			ad, err := filepath.Abs(d)
 			errs.Append(err)
