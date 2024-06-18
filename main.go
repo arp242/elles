@@ -283,7 +283,7 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 
 			b := buf.String()
 			if opt.maxColWidth > 0 && w > opt.maxColWidth {
-				b = termtext.Slice(b, 0, opt.maxColWidth-1) + "…"
+				b = termtext.Slice(b, 0, opt.maxColWidth-1) + reset + "…"
 				w = opt.maxColWidth
 			}
 			fmtRows, widths = append(fmtRows, b), append(widths, w)
@@ -293,7 +293,7 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 		if (opt.one && !colsSet) || (opt.list > 0 && !colsSet) {
 			for i, f := range fmtRows {
 				if columns > 0 && opt.trim && widths[i] > columns {
-					f = termtext.Slice(f, 0, columns-1) + "…"
+					f = termtext.Slice(f, 0, columns-1) + reset + "…"
 				}
 				fmt.Fprintln(zli.Stdout, f)
 			}
