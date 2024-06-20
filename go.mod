@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	golang.org/x/sys v0.21.0
-	zgo.at/termtext v1.5.0
+	zgo.at/termtext v1.5.1-0.20240620230817-7e8a4a59650a
 	zgo.at/zli v0.0.0-20240614180544-47534b1ce136
 )
 
