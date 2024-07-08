@@ -2,7 +2,9 @@
 
 package os2
 
-import "golang.org/x/sys/unix"
+import (
+	"golang.org/x/sys/unix"
+)
 
 func statfs(m string) (int, error) {
 	var vfs unix.Statfs_t

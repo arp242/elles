@@ -116,7 +116,13 @@ func Blocksize(path string) int {
 		for _, m := range mnts {
 			bsize, err := statfs(m)
 			if err != nil {
-				zli.Errorf("statfs %q: %s", m, err)
+				switch err {
+				case syscall.EPERM, syscall.EACCES:
+					// Ignore permission errors. If we can't read this, then we
+					// won't be able to read anything else either, so it's okay.
+				default:
+					zli.Errorf("statfs %q: %s", m, err)
+				}
 				bsize = 512
 			}
 
