@@ -1409,6 +1409,33 @@ func TestColumns(t *testing.T) {
 	}
 }
 
+func TestColumnsPad(t *testing.T) {
+	defer func() { columns = 80 }()
+	columns = 88
+
+	start(t)
+	for _, f := range []string{"02-07 Catspaw.mkv", "02-08 I, Mudd.mkv", "02-09 Metamorphosis.mkv",
+		"02-11 Friday's Child.mkv", "02-12 The Deadly Years.mkv", "02-13 Obsession.mkv",
+		"02-14 Wolf In The Fold.mkv", "02-20 Return to Tomorrow.mkv", "02-21 Patterns of Force.mkv",
+		"02-22 By Any Other Name.mkv", "02-25 Bread and Circuses.mkv", "03-17 That Which Survives.mkv",
+		"03-21 The Cloud Minders.mkv", "03-22 The Savage Curtain.mkv", "03-24 Turnabout Intruder.mkv",
+	} {
+		touch(t, f)
+	}
+
+	have := mustRun(t, "-C")
+	want := norm(`
+		02-07 Catspaw.mkv           02-13 Obsession.mkv           02-25 Bread and Circuses.mkv
+		02-08 I, Mudd.mkv           02-14 Wolf In The Fold.mkv    03-17 That Which Survives.mkv
+		02-09 Metamorphosis.mkv     02-20 Return to Tomorrow.mkv  03-21 The Cloud Minders.mkv
+		02-11 Friday's Child.mkv    02-21 Patterns of Force.mkv   03-22 The Savage Curtain.mkv
+		02-12 The Deadly Years.mkv  02-22 By Any Other Name.mkv   03-24 Turnabout Intruder.mkv`)
+	if have != want {
+		t.Errorf("\nhave:\n%s\n\nwant:\n%s\n\nhave: %[1]q\nwant: %[2]q", have, want)
+	}
+
+}
+
 func TestSpace(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Windows doesn't like filenames as just a space, or something")
@@ -1544,8 +1571,7 @@ func TestUnprintable(t *testing.T) {
 	{
 		have := mustRun(t, "-CQ")
 		want := norm(`
-			"A\u200dB"  "A\u202dB"  "A\ufe04B"  "A\ufe0fB"
-			"A\u200eB"  A→B         "A\ufe0eB"  a̅b`)
+			"A\u200dB"  "A\u200eB"  "A\u202dB"  A→B  "A\ufe04B"  "A\ufe0eB"  "A\ufe0fB"  a̅b`)
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}

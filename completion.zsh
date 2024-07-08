@@ -2,7 +2,7 @@
 
 # Completion for "elles"; https://github.com/arp242/elles
 #
-# Save as "elles" in any directory in $fpath; see the current list with:
+# Save as "_elles" in any directory in $fpath; see the current list with:
 #
 #    print -l $fpath
 #

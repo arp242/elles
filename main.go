@@ -366,7 +366,11 @@ func recol(paths []string, pathWidths []int, ncols, pad int) ([][]string, []int)
 				break
 			}
 
-			if l := pathWidths[j] + pad; l > widths[c] {
+			l := pathWidths[j]
+			if c < ncols-1 {
+				l += pad
+			}
+			if l > widths[c] {
 				widths[c] = l
 			}
 			row = append(row, paths[j])
