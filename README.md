@@ -1,7 +1,7 @@
 This is mostly "just" `ls`, but a bit better. Nothing too fancy.
 
 I wanted some flexibility in which columns to display and a few other minor
-things; `ls` doesn't give you much options here. It started as a simple shell
+things; `ls` doesn't give you many options here. It started as a simple shell
 script, and then became a simple Go program, and then things got rather of out
 of hand.
 
@@ -9,7 +9,7 @@ Flags are sort-of compatible with `ls`, except when they're not. Full
 compatibility with POSIX or any other `ls` isn't the main goal.
 
 That said, most people should be able to use `alias ls=elles` and not get too
-surprised; defaults are and the most commonly used flags are identical.
+surprised; defaults and the most commonly used flags are identical.
 
 It differs from [eza] or [lsd] in that it has a slightly different feature set,
 and makes some different choices about various aspects.
@@ -76,12 +76,12 @@ differences. `-C` also works for this:
 ![`elles -llC /`](ss/elles_-llC.png)
 
 Sometimes things are annoying to display because of long filenames; for example
-listing my `~/.cache` doesn't even fit on a single window:
+listing my `~/.cache` doesn't even fit in a single window:
 
 ![`elles ~/.cache`](ss/elles_.cache.png)
 
 This one 79-character `event-sound-cache..` file forces single-column display.
-The `-m` option forces a minimum column width, trimming text that's too long:
+The `-m` option sets a minimum column width, trimming text that's too long:
 
 ![`elles -m4 ~/.cache`](ss/elles_-m_4_.cache.png)
 
