@@ -39,12 +39,12 @@ type (
 		rows    [][]col
 	}
 	opts struct {
-		list, quote, fullTime, maxColWidth int
-		dirSlash, classify, comma          bool
-		numericUID, group, hyperlink       bool
-		blockSize, timeField               string
-		one, cols, recurse, inode          bool
-		trim, octal, derefAll              bool
+		list, quote, fullTime, maxColWidth, minCols int
+		dirSlash, classify, comma                   bool
+		numericUID, group, hyperlink                bool
+		blockSize, timeField                        string
+		one, cols, recurse, inode                   bool
+		trim, octal, derefAll                       bool
 	}
 )
 

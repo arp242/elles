@@ -101,6 +101,7 @@ func main() {
 		noTrim       = f.Bool(false, "no-trim")
 		octal        = f.Bool(false, "o", "octal")
 		group        = f.Bool(false, "g", "group")
+		minCols      = f.Int(0, "m", "min")
 	)
 	zli.F(f.Parse(zli.AllowMultiple()))
 	if colorBSD.Bool() && !color.Set() {
@@ -225,6 +226,7 @@ func main() {
 		trim:        trim.Bool(),
 		maxColWidth: width.Int(),
 		derefAll:    derefAll.Bool(),
+		minCols:     minCols.Int(),
 	}
 
 	draw(toPrint, errs, opt, cols.Set())
@@ -246,9 +248,11 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 		// large directories it shouldn't take more than a few hundred K.
 		cc := getCols(p, opt)
 
+	refmt:
 		var (
 			fmtRows = make([]string, 0, len(cc.rows))
 			widths  = make([]int, 0, len(cc.rows))
+			longest int
 			buf     strings.Builder
 			w       int
 		)
@@ -287,6 +291,9 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 				w = opt.maxColWidth
 			}
 			fmtRows, widths = append(fmtRows, b), append(widths, w)
+			if w > longest {
+				longest = w
+			}
 		}
 
 	one:
@@ -315,6 +322,14 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 					break
 				}
 				rows, colwidths = r, w
+			}
+			if opt.minCols > 0 && len(colwidths) < opt.minCols {
+				if opt.maxColWidth == 0 {
+					opt.maxColWidth = longest - 1
+				} else {
+					opt.maxColWidth--
+				}
+				goto refmt
 			}
 
 			// Only space for one column; restart as if -1 was set. Saves some
@@ -376,6 +391,9 @@ func recol(paths []string, pathWidths []int, ncols, pad int) ([][]string, []int)
 			row = append(row, paths[j])
 		}
 		rows = append(rows, row)
+	}
+	if i := slices.Index(widths, 0); i > -1 {
+		widths = widths[:i]
 	}
 	return rows, widths
 }

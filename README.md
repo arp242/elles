@@ -81,8 +81,11 @@ listing my `~/.cache` doesn't even fit on a single window:
 ![`elles ~/.cache`](ss/elles_.cache.png)
 
 This one 79-character `event-sound-cache..` file forces single-column display.
-With the `-w` option you can set the maximum column width to deal with this sort
-of nonsense:
+The `-m` option forces a minimum column width, trimming text that's too long:
+
+![`elles -m4 ~/.cache`](ss/elles_-m_4_.cache.png)
+
+Or alternatively, set an explicit maximum width with `-w`:
 
 ![`elles -w30 ~/.cache`](ss/elles_-w_30_.cache.png)
 

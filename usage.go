@@ -39,6 +39,9 @@ How to list it:
     -n               Display user an group ID as number, rather than username.
     -w, -width=..    Maximum column width; longer columns will be trimmed. Set
                      to 0 to disable.
+    -m, -min=n       Minimum number of columns to use, trimming columns that are
+                     too long. This does not set the exact number of columns and
+                     sometimes results in more columns.
     -o, -octal       File permissions as octal instead of "rwx…".
 
 How to format paths:
