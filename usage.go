@@ -23,7 +23,7 @@ What to list:
     -L               Follow all symlinks.
     -R, -recursive   List subdirectories recursively.
     -i, -inode       Print inode numbers.
-    -g, -group       Always display the group by name in -ll; by default it's
+    -g, -groupname   Always display the group by name in -ll; by default it's
                      only shown if the group group name is different from the
                      username.
 

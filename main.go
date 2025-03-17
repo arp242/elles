@@ -101,7 +101,7 @@ func main() {
 		trim         = f.Bool(false, "trim")
 		noTrim       = f.Bool(false, "no-trim")
 		octal        = f.Bool(false, "o", "octal")
-		group        = f.Bool(false, "g", "group")
+		group        = f.Bool(false, "g", "groupname")
 		minCols      = f.Int(0, "m", "min")
 	)
 	zli.F(f.Parse(zli.AllowMultiple()))

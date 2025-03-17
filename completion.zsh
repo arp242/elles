@@ -18,7 +18,7 @@ arguments=(
 	'(-H)'-H'[follow symlink on the command line]'
 	'(-R --recursive)'{-R,-recursive}'[list subdirectories recursively]'
 	'(-i --inore)'{-i,--inode}'[print inode numbers]'
-	'(-g -group)'{-g,--group}'[always print group name]'
+	'(-g -groupname)'{-g,--groupname}'[always print group name]'
 
 	'(-j --json)'{-j,--json}'[print as JSON]'
 	'(-1 -C)'-l'[long listing]'
