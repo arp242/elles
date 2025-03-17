@@ -10,10 +10,10 @@ type errGroup struct {
 	errs    []error
 }
 
-func (g errGroup) Len() int { return len(g.errs) }
+func (g *errGroup) Len() int { return len(g.errs) }
 
 // List all the errors; returns nil if there are no errors.
-func (g errGroup) List() []error {
+func (g *errGroup) List() []error {
 	if g.Len() == 0 {
 		return nil
 	}

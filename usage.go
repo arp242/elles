@@ -111,14 +111,23 @@ Colours:
         ELLES_COLORS=gnu
 
     The BSD defaults tend to work better on light backgrounds, and the GNU ones
-    on dark backgrounds. In the future ELLES_COLORS may accept more detailed
-    configuration, but for now it just accepts these two keywords.
+    on dark backgrounds.
 
     Use LS_COLORS (GNU ls format) or LSCOLORS (BSD ls format) to configure the
     colours. It will try them in that order and use the first one that's found
-    (on all platforms).
+    (on all platforms). Highlighting paths based on extension ("*.m4a=00;36")
+    isn't implemented.
 
-    Highlighting paths based on extension ("*.m4a=00;36") isn't implemented.
+    ELLES_COLORS can accept additional :-separated values for elles-specific
+    colouring features; this follos the GNU LS_COLORS syntax of «name»=«escape»,
+    where «escape» is the terminal escape code to set.
+
+        hidden  Additional highlights for hidden entries (e.g. those that start
+                with a "."). These are applied after the regular colour codes.
+                For example, to use the BSD defaults and add a grey background
+                for hidden files:
+
+                    ELLES_COLORS='bsd:hidden=48;5;255'
 
 Compatibility flags:
 

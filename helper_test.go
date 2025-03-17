@@ -238,25 +238,6 @@ func createSparse(t *testing.T, sz int64, path ...string) {
 	}
 }
 
-// ls
-func list(t *testing.T, path ...string) []string {
-	t.Helper()
-	if len(path) < 1 {
-		t.Fatalf("mkdirAll: path must have at least one element: %s", path)
-	}
-	ls, err := os.ReadDir(join(path...))
-	if err != nil {
-		t.Fatalf("list(%q): %s", join(path...), err)
-	}
-	list := make([]string, 0, len(ls))
-	for _, f := range ls {
-		if n := f.Name(); n[0] != '.' {
-			list = append(list, mustRun(t, "-1d", n))
-		}
-	}
-	return list
-}
-
 // mkdir -p
 func mkdirAll(t *testing.T, path ...string) {
 	t.Helper()

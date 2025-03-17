@@ -181,6 +181,7 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 		n = filepath.Join(dir, n)
 	}
 	n = doQuote(n, opt.quote)
+	hidden := n[0] == '.'
 
 	// TODO: this should probably use zgo.at/termtext or something, pretty
 	// sure alignment of this will be off in cases of double-width stuff
@@ -192,6 +193,9 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 	ifset := func(c string, class ...string) {
 		if c != "" {
 			didColor = true
+			if hidden {
+				c += colorHidden
+			}
 			n = c + n + reset
 		}
 		if len(class) > 0 && (opt.classify || (class[0] == "/" && opt.dirSlash)) {
@@ -284,6 +288,9 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 	}
 	if !didColor {
 		ifset(colorNormal)
+	}
+	if hidden {
+		ifset(colorHidden)
 	}
 
 	if opt.hyperlink {

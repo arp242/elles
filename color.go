@@ -12,21 +12,26 @@ var (
 	colorNormal, colorFile, colorDir, colorLink, colorPipe, colorSocket                 string
 	colorBlockDev, colorCharDev, colorOrphan, colorExec                                 string
 	colorDoor, colorSuid, colorSgid, colorSticky, colorOtherWrite, colorOtherWriteStick string
+	colorHidden                                                                         string
 	reset                                                                               string
 
-	defaultColors, defaultFromEnv = func() (string, bool) {
-		if c := os.Getenv("ELLES_COLORS"); c != "" {
-			return c, true
-		}
-		if c := os.Getenv("ELLES_COLOURS"); c != "" {
-			return c, true
-		}
+	systemStyle = func() string {
 		switch runtime.GOOS {
 		case "freebsd", "openbsd", "netbsd", "dragonfly", "darwin":
-			return "bsd", false
+			return "bsd"
 		default:
-			return "gnu", false
+			return "gnu"
 		}
+	}()
+
+	ellesColors = func() []string {
+		if c := os.Getenv("ELLES_COLORS"); c != "" {
+			return strings.Split(c, ":")
+		}
+		if c := os.Getenv("ELLES_COLOURS"); c != "" {
+			return strings.Split(c, ":")
+		}
+		return []string{systemStyle}
 	}()
 )
 
@@ -37,10 +42,26 @@ func setColor() {
 
 	reset = zli.Reset.String()
 
-	switch defaultColors {
-	default:
-		zli.Errorf("invalid ELLES_COLORS: %q", defaultColors)
+	style := systemStyle
+	for _, v := range ellesColors {
+		v := strings.ToLower(v)
+		switch {
+		default:
+			zli.Errorf("invalid value in ELLES_COLORS: %q", v)
+		case strings.HasPrefix(v, "hidden="):
+			colorHidden = "\x1b[" + v[7:] + "m"
+		case v == "bsd":
+			style = "bsd"
+		case v == "gnu":
+			style = "gnu"
+		}
+	}
+
+	switch style {
 	case "bsd":
+		if readBSDColors() {
+			break
+		}
 		colorDir, colorLink = zli.Blue.String(), zli.Magenta.String()
 		colorSocket, colorPipe = zli.Green.String(), zli.Yellow.String()
 		colorExec, colorBlockDev = zli.Red.String(), (zli.Blue | zli.Cyan.Bg()).String()
@@ -50,20 +71,27 @@ func setColor() {
 		colorOtherWriteStick = (zli.Black | zli.Green.Bg()).String()
 		colorOtherWrite = (zli.Black | zli.Blue.Bg()).String()
 	case "gnu":
+		if readGNUColors() {
+			break
+		}
 		colorDir, colorLink, colorPipe = "\x1b[01;34m", "\x1b[01;36m", "\x1b[33m"
 		colorSocket, colorBlockDev, colorCharDev = "\x1b[01;35m", "\x1b[01;33m", "\x1b[01;33m"
 		colorExec, colorDoor, colorSuid = "\x1b[01;32m", "\x1b[01;35m", "\x1b[37;41m"
 		colorSgid, colorSticky, colorOtherWrite = "\x1b[30;43m", "\x1b[37;44m", "\x1b[34;42m"
 		colorOtherWriteStick = "\x1b[30;42m"
 	}
-	if defaultFromEnv {
-		return
-	}
-	if !readGNUColors() {
-		readBSDColors()
-	}
 }
 
+// Positional «fg»«bg» pairs, 11 in total (in order): directory, symlink,
+// socket, pipe, blockdev, chardev, executable with setuid, executable with
+// setgid, world-writable dir with sticky, world-writable dir without sticky
+//
+// Values:
+//
+//	a-h  standard 16 colours
+//	A-H  bold/underline versions
+//	x    default colour
+//	X    default colour with bold/underline
 func readBSDColors() bool {
 	c := os.Getenv("LSCOLORS")
 	if c == "" {
@@ -134,6 +162,8 @@ func bsdcolor(c byte, bold bool) zli.Color {
 	return 0
 }
 
+// key/value pair as «name»=«colour code», where colour code is the terminal
+// code we send without processing.
 func readGNUColors() bool {
 	c := os.Getenv("LS_COLORS")
 	if c == "" {

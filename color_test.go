@@ -63,7 +63,7 @@ func TestDefaultColor(t *testing.T) {
 	chmod(t, 0o755|fs.ModeSticky, "sticky-dir")
 	chmod(t, 0o777|fs.ModeSticky, "sticky-dir-world")
 
-	defaultColors = "gnu"
+	os.Setenv("ELLES_COLORS", "gnu")
 	haveGNU := mustRun(t, "-CF", "--color=always") + "\n"
 	for i, l := range strings.Split(mustRun(t, "-lF", "--color=always"), "\n") {
 		if i > 0 {
@@ -77,7 +77,7 @@ func TestDefaultColor(t *testing.T) {
 		haveGNU += f[2]
 	}
 
-	defaultColors = "bsd"
+	os.Setenv("ELLES_COLORS", "bsd")
 	haveBSD := mustRun(t, "-CF", "--color=always") + "\n"
 	for i, l := range strings.Split(mustRun(t, "-lF", "--color=always"), "\n") {
 		if i > 0 {
@@ -90,6 +90,8 @@ func TestDefaultColor(t *testing.T) {
 		f := strings.Split(l, " │ ")
 		haveBSD += f[2]
 	}
+
+	os.Unsetenv("LS_COLORS")
 
 	// Can get the system values with the following functions, assuming it point
 	// to the correct "ls".
