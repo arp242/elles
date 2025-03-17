@@ -63,10 +63,10 @@ func getCols(p printable, opt opts) cols {
 		rows:    make([][]col, 0, len(p.fi)),
 	}
 
-	for i, fi := range p.fi {
+	for _, fi := range p.fi {
 		fp, afp := p.dir, p.absdir
 		if p.isFiles {
-			fp, afp = p.filePath[i], p.filePathAbs[i]
+			fp, afp = fi.filepath, fi.filepathAbs
 		}
 		cur := make([]col, 0, ncols)
 		if opt.list == 0 {

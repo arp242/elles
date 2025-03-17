@@ -43,17 +43,18 @@ var (
 	}()
 )
 
-type printable struct {
-	dir     string // Belongs in dir; can be empty.
-	absdir  string
-	isFiles bool
-	fi      []fs.FileInfo
-
-	// Only for isFiles=true
-	// TODO: can just add that to our own FileInfo once we write out own ReadDir()
-	filePath    []string
-	filePathAbs []string
-}
+type (
+	printable struct {
+		dir     string // Belongs in dir; can be empty.
+		absdir  string
+		isFiles bool
+		fi      []fileInfo
+	}
+	fileInfo struct {
+		fs.FileInfo
+		filepath, filepathAbs string
+	}
+)
 
 func main() {
 	f := zli.NewFlags(os.Args)
@@ -457,7 +458,7 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefA
 			pr := printable{
 				dir:    d,
 				absdir: ad,
-				fi:     make([]fs.FileInfo, 0, len(ls)),
+				fi:     make([]fileInfo, 0, len(ls)),
 			}
 			var subdirs []string
 			for _, l := range ls {
@@ -468,7 +469,7 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefA
 
 				// Don't call stat if we don't need to.
 				if nostat {
-					pr.fi = append(pr.fi, fakeFileInfo{l})
+					pr.fi = append(pr.fi, fileInfo{fakeFileInfo{l}, "", ""})
 				} else {
 					var fi fs.FileInfo
 					if derefAll {
@@ -478,9 +479,9 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefA
 					}
 					if errs.Append(err) {
 						// Don't skip the entire file, just don't add stat info.
-						pr.fi = append(pr.fi, fakeFileInfo{l})
+						pr.fi = append(pr.fi, fileInfo{fakeFileInfo{l}, "", ""})
 					} else {
-						pr.fi = append(pr.fi, fi)
+						pr.fi = append(pr.fi, fileInfo{fi, "", ""})
 					}
 				}
 
@@ -502,18 +503,14 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefA
 
 			if filesIndex == -1 {
 				toPrint = append(toPrint, printable{
-					dir:         d,
-					absdir:      ad,
-					isFiles:     true,
-					filePath:    []string{d},
-					filePathAbs: []string{ad},
-					fi:          []fs.FileInfo{fi},
+					dir:     d,
+					absdir:  ad,
+					isFiles: true,
+					fi:      []fileInfo{{fi, d, ad}},
 				})
 				filesIndex = len(toPrint) - 1
 			} else {
-				toPrint[filesIndex].fi = append(toPrint[filesIndex].fi, fi)
-				toPrint[filesIndex].filePath = append(toPrint[filesIndex].filePath, d)
-				toPrint[filesIndex].filePathAbs = append(toPrint[filesIndex].filePathAbs, ad)
+				toPrint[filesIndex].fi = append(toPrint[filesIndex].fi, fileInfo{fi, d, ad})
 			}
 		}
 	}
@@ -549,11 +546,11 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefA
 // Sort files.
 func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst bool) {
 	var (
-		sorter func(a, b fs.FileInfo) int
+		sorter func(a, b fileInfo) int
 		// TODO: Hack for Linux btime, until we rewrite some of the stdlib stuff.
-		sorter2 func(printable) func(a, b fs.FileInfo) int
+		sorter2 func(printable) func(a, b fileInfo) int
 
-		nameSort = func(a, b fs.FileInfo) int { return cmp.Compare(a.Name(), b.Name()) }
+		nameSort = func(a, b fileInfo) int { return cmp.Compare(a.Name(), b.Name()) }
 	)
 
 	// var (
@@ -577,27 +574,27 @@ func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst boo
 
 	switch sortby {
 	case "size":
-		sorter = func(a, b fs.FileInfo) int { return cmp.Compare(b.Size(), a.Size()) }
+		sorter = func(a, b fileInfo) int { return cmp.Compare(b.Size(), a.Size()) }
 	case "time":
 		switch timeField {
 		case "btime":
 			sorter = nil
-			sorter2 = func(p printable) func(a, b fs.FileInfo) int {
-				return func(a, b fs.FileInfo) int { return os2.Btime(p.absdir, b).Compare(os2.Btime(p.absdir, a)) }
+			sorter2 = func(p printable) func(a, b fileInfo) int {
+				return func(a, b fileInfo) int { return os2.Btime(p.absdir, b).Compare(os2.Btime(p.absdir, a)) }
 			}
 		case "atime":
-			sorter = func(a, b fs.FileInfo) int { return os2.Atime(b).Compare(os2.Atime(a)) }
+			sorter = func(a, b fileInfo) int { return os2.Atime(b).Compare(os2.Atime(a)) }
 		default:
-			sorter = func(a, b fs.FileInfo) int { return b.ModTime().Compare(a.ModTime()) }
+			sorter = func(a, b fileInfo) int { return b.ModTime().Compare(a.ModTime()) }
 		}
 	case "ext", "extension":
-		sorter = func(a, b fs.FileInfo) int { return cmp.Compare(filepath.Ext(a.Name()), filepath.Ext(b.Name())) }
+		sorter = func(a, b fileInfo) int { return cmp.Compare(filepath.Ext(a.Name()), filepath.Ext(b.Name())) }
 	case "version":
-		sorter = func(a, b fs.FileInfo) int { return versCompare(a.Name(), b.Name()) }
+		sorter = func(a, b fileInfo) int { return versCompare(a.Name(), b.Name()) }
 	case "width":
 		// TODO: maybe make it sort by display width (with quotes and all of
 		// that)? That's what GNU ls does.
-		sorter = func(a, b fs.FileInfo) int { return cmp.Compare(len([]rune(a.Name())), len([]rune(b.Name()))) }
+		sorter = func(a, b fileInfo) int { return cmp.Compare(len([]rune(a.Name())), len([]rune(b.Name()))) }
 	case "none", "none-all":
 		sorter, nameSort = nil, nil
 	default:
@@ -621,7 +618,7 @@ func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst boo
 		}
 	}
 	if dirsFirst {
-		isdir := func(dir string, fi fs.FileInfo) bool {
+		isdir := func(dir string, fi fileInfo) bool {
 			if fi.IsDir() {
 				return true
 			}
