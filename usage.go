@@ -104,30 +104,25 @@ Environment:
 Colours:
 
     The defaults colours are identical to FreeBSD ls on all BSD systems and
-    macOS, and GNU ls on everything else. The default colour scheme can be
-    selected with ELLES_COLORS:
+    macOS, and GNU ls on everything else. Use LS_COLORS (GNU ls format) or
+    LSCOLORS (BSD ls format) to configure the colours. It will try them in that
+    order and use the first one that's found (on all platforms).
 
-        ELLES_COLORS=bsd
-        ELLES_COLORS=gnu
+    ELLES_COLORS can be used for elles-specific colourings. It won't look at
+    LS_COLORS or LSCOLORS if it's set. The syntax of this follows GNU's
+    LS_COLORS, with additional options:
 
-    The BSD defaults tend to work better on light backgrounds, and the GNU ones
-    on dark backgrounds.
+        default  Explicitly set which defalts to use, "bsd" or "gnu". The BSD
+                 defaults tend to work better on light backgrounds, and the GNU
+                 ones on dark backgrounds.
 
-    Use LS_COLORS (GNU ls format) or LSCOLORS (BSD ls format) to configure the
-    colours. It will try them in that order and use the first one that's found
-    (on all platforms). Highlighting paths based on extension ("*.m4a=00;36")
-    isn't implemented.
+        hidden   Additional highlights for hidden entries (e.g. those that start
+                 with a "."). These are applied after the regular colour codes.
 
-    ELLES_COLORS can accept additional :-separated values for elles-specific
-    colouring features; this follos the GNU LS_COLORS syntax of «name»=«escape»,
-    where «escape» is the terminal escape code to set.
+    For example, to use the BSD defaults with a grey background for hidden
+    files and highlighting *.exe as red:
 
-        hidden  Additional highlights for hidden entries (e.g. those that start
-                with a "."). These are applied after the regular colour codes.
-                For example, to use the BSD defaults and add a grey background
-                for hidden files:
-
-                    ELLES_COLORS='bsd:hidden=48;5;255'
+        ELLES_COLORS='default=bsd:hidden=48;5;255:*.exe=31'
 
 Compatibility flags:
 

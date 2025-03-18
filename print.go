@@ -215,6 +215,8 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 	case fi.Mode().IsRegular():
 		if ex != "" {
 			ifset(colorExec, ex)
+		} else if c, ok := colorExt[filepath.Ext(n)]; ok {
+			ifset(c)
 		} else {
 			ifset(colorFile)
 		}

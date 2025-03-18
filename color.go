@@ -14,54 +14,33 @@ var (
 	colorDoor, colorSuid, colorSgid, colorSticky, colorOtherWrite, colorOtherWriteStick string
 	colorHidden                                                                         string
 	reset                                                                               string
-
-	systemStyle = func() string {
-		switch runtime.GOOS {
-		case "freebsd", "openbsd", "netbsd", "dragonfly", "darwin":
-			return "bsd"
-		default:
-			return "gnu"
-		}
-	}()
-
-	ellesColors = func() []string {
-		if c := os.Getenv("ELLES_COLORS"); c != "" {
-			return strings.Split(c, ":")
-		}
-		if c := os.Getenv("ELLES_COLOURS"); c != "" {
-			return strings.Split(c, ":")
-		}
-		return []string{systemStyle}
-	}()
+	colorExt                                                                            map[string]string
 )
 
 func setColor() {
 	if !zli.WantColor {
 		return
 	}
-
 	reset = zli.Reset.String()
 
-	style := systemStyle
-	for _, v := range ellesColors {
-		v := strings.ToLower(v)
-		switch {
-		default:
-			zli.Errorf("invalid value in ELLES_COLORS: %q", v)
-		case strings.HasPrefix(v, "hidden="):
-			colorHidden = "\x1b[" + v[7:] + "m"
-		case v == "bsd":
-			style = "bsd"
-		case v == "gnu":
-			style = "gnu"
-		}
+	ellesColors := os.Getenv("ELLES_COLORS")
+	if ellesColors == "" {
+		ellesColors = os.Getenv("ELLES_COLOURS")
 	}
 
+	style := "gnu"
+	switch runtime.GOOS {
+	case "freebsd", "openbsd", "netbsd", "dragonfly", "darwin":
+		style = "bsd"
+	}
+	switch {
+	case strings.Contains(ellesColors, "default=bsd"):
+		style = "bsd"
+	case strings.Contains(ellesColors, "default=gnu"):
+		style = "bsd"
+	}
 	switch style {
 	case "bsd":
-		if readBSDColors() {
-			break
-		}
 		colorDir, colorLink = zli.Blue.String(), zli.Magenta.String()
 		colorSocket, colorPipe = zli.Green.String(), zli.Yellow.String()
 		colorExec, colorBlockDev = zli.Red.String(), (zli.Blue | zli.Cyan.Bg()).String()
@@ -71,14 +50,22 @@ func setColor() {
 		colorOtherWriteStick = (zli.Black | zli.Green.Bg()).String()
 		colorOtherWrite = (zli.Black | zli.Blue.Bg()).String()
 	case "gnu":
-		if readGNUColors() {
-			break
-		}
 		colorDir, colorLink, colorPipe = "\x1b[01;34m", "\x1b[01;36m", "\x1b[33m"
 		colorSocket, colorBlockDev, colorCharDev = "\x1b[01;35m", "\x1b[01;33m", "\x1b[01;33m"
 		colorExec, colorDoor, colorSuid = "\x1b[01;32m", "\x1b[01;35m", "\x1b[37;41m"
 		colorSgid, colorSticky, colorOtherWrite = "\x1b[30;43m", "\x1b[37;44m", "\x1b[34;42m"
 		colorOtherWriteStick = "\x1b[30;42m"
+	}
+
+	if ellesColors != "" {
+		readGNUColors(ellesColors, true)
+	}
+	if !readBSDColors() {
+		c := os.Getenv("LS_COLORS")
+		if c == "" {
+			c = os.Getenv("LS_COLOURS")
+		}
+		readGNUColors(c, false)
 	}
 }
 
@@ -164,13 +151,14 @@ func bsdcolor(c byte, bold bool) zli.Color {
 
 // key/value pair as «name»=«colour code», where colour code is the terminal
 // code we send without processing.
-func readGNUColors() bool {
-	c := os.Getenv("LS_COLORS")
+func readGNUColors(c string, extended bool) bool {
+	varname := "LS_COLORS"
+	if extended {
+		varname = "ELLES_COLORS"
+	}
+
 	if c == "" {
-		c = os.Getenv("LS_COLOURS")
-		if c == "" {
-			return false
-		}
+		return false
 	}
 	for _, cc := range strings.Split(c, ":") {
 		if cc == "" {
@@ -178,7 +166,17 @@ func readGNUColors() bool {
 		}
 		k, v, ok := strings.Cut(cc, "=")
 		if !ok {
-			zli.Errorf("malformed LS_COLORS: %q", cc)
+			if extended && (k == "bsd" || k == "gnu") {
+				continue
+			}
+			zli.Errorf("malformed %s: %q", varname, cc)
+			continue
+		}
+		if k[0] == '*' {
+			if colorExt == nil {
+				colorExt = make(map[string]string)
+			}
+			colorExt[k[1:]] = "\x1b[" + v + "m"
 			continue
 		}
 		switch k {
@@ -220,9 +218,17 @@ func readGNUColors() bool {
 		case "tw":
 			colorOtherWriteStick = "\x1b[" + v + "m"
 		default:
-			// Can't warn because of the "*.ext" stuff, which isn't implemented.
-			//zli.Errorf("unknown key in LS_COLORS: %q", k)
+			if !extended {
+				zli.Errorf("unknown key in %s: %q", varname, k)
+			}
+			switch k {
+			default:
+				zli.Errorf("unknown key in %s: %q", varname, k)
+			case "hidden":
+				colorHidden = "\x1b[" + v + "m"
+			}
 		}
+
 	}
 	return true
 }
