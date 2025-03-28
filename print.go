@@ -177,11 +177,11 @@ func getCols(p printable, opt opts) cols {
 
 func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listingDir bool) (string, int) {
 	n := fi.Name()
+	hidden := n[0] == '.'
 	if dir != "" && !opt.recurse && !listingDir {
 		n = filepath.Join(dir, n)
 	}
 	n = doQuote(n, opt.quote)
-	hidden := n[0] == '.'
 
 	// TODO: this should probably use zgo.at/termtext or something, pretty
 	// sure alignment of this will be off in cases of double-width stuff
