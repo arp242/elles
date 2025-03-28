@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: 'actions/checkout@v4'
       - uses: 'WillAbides/setup-go-faster@v1'
-        with: {go-version: '1.22'}
+        with: {go-version: '1.24'}
       - name: 'test (linux)'
         run: 'go test ./...'
 
@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: 'actions/checkout@v4'
       - uses: 'WillAbides/setup-go-faster@v1'
-        with: {go-version: '1.22'}
+        with: {go-version: '1.24'}
       - name: 'test (windows)'
         run: 'go test ./...'
 
@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: 'actions/checkout@v4'
       - uses: 'WillAbides/setup-go-faster@v1'
-        with: {go-version: '1.22'}
+        with: {go-version: '1.24'}
       - name: 'test (macos)'
         run: 'go test ./...'
 
@@ -54,7 +54,7 @@ jobs:
             pw user add -n action -m
           run: |
             echo 'XXXXXX'
-            go version
+            su action -c 'go122 version'
             su action -c 'go122 test ./...'
 
   openbsd:
@@ -71,7 +71,7 @@ jobs:
             pkg_add go
           run: |
             echo 'XXXXXX'
-            go version
+            su action -c 'go version'
             su action -c 'go test ./...'
 
   netbsd:
@@ -88,24 +88,24 @@ jobs:
             pkg_add go122
           run: |
             echo 'XXXXXX'
-            /usr/pkg/bin/go122 version
+            su action -c '/usr/pkg/bin/go122 version'
             su action -c '/usr/pkg/bin/go122 test ./...'
 
-  #illumos:
-  #  name: 'test (illumos)'
-  #  runs-on: 'ubuntu-latest'
-  #  steps:
-  #  - uses: 'actions/checkout@v4'
-  #  - name: 'test (illumos)'
-  #    id:   'illumos'
-  #    uses: 'vmactions/omnios-vm@v1'
-  #    with:
-  #      prepare: |
-  #        useradd action
-  #        pkg install go-122
-  #      run: |
-  #        echo 'XXXXXX'
-  #        export GOCACHE=/tmp/go-cache
-  #        export GOPATH=/tmp/go-path
-  #        go version
-  #        su action -c 'go test ./...'
+  illumos:
+    name: 'test (illumos)'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v4'
+    - name: 'test (illumos)'
+      id:   'illumos'
+      uses: 'vmactions/omnios-vm@v1'
+      with:
+        prepare: |
+          useradd action
+          pkg install go-122
+        run: |
+          echo 'XXXXXX'
+          export GOCACHE=/tmp/go-cache
+          export GOPATH=/tmp/go-path
+          su action -c 'go version'
+          su action -c 'go test ./...'
