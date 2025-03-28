@@ -315,7 +315,7 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 				pad = 4
 			}
 			for i := range 200 {
-				r, w := recol(fmtRows, widths, i, pad)
+				r, w := recol(fmtRows, widths, i+1, pad)
 				if sum(w) > columns {
 					if i <= 1 {
 						rows, colwidths = r, w
