@@ -319,6 +319,9 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 				pad = 4
 			}
 			for i := range 200 {
+				if i == 0 {
+					continue
+				}
 				r, w := recol(fmtRows, widths, i, pad)
 				if sum(w) > columns {
 					if i <= 1 {
