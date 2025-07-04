@@ -10,7 +10,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@v4'
-      - uses: 'WillAbides/setup-go-faster@v1'
+      - uses: 'actions/setup-go@v5'
         with: {go-version: '1.24'}
       - name: 'test (linux)'
         run: 'go test ./...'
@@ -20,7 +20,7 @@ jobs:
     runs-on: 'ubuntu-24.04-arm'
     steps:
       - uses: 'actions/checkout@v4'
-      - uses: 'WillAbides/setup-go-faster@v1'
+      - uses: 'actions/setup-go@v5'
         with: {go-version: '1.24'}
       - name: 'test (linux-arm64)'
         run: 'go test ./...'
@@ -30,7 +30,7 @@ jobs:
     runs-on: 'windows-latest'
     steps:
       - uses: 'actions/checkout@v4'
-      - uses: 'WillAbides/setup-go-faster@v1'
+      - uses: 'actions/setup-go@v5'
         with: {go-version: '1.24'}
       - name: 'test (windows)'
         run: 'go test ./...'
@@ -40,7 +40,7 @@ jobs:
     runs-on: 'macos-latest'
     steps:
       - uses: 'actions/checkout@v4'
-      - uses: 'WillAbides/setup-go-faster@v1'
+      - uses: 'actions/setup-go@v5'
         with: {go-version: '1.24'}
       - name: 'test (macos)'
         run: 'go test ./...'
@@ -76,6 +76,7 @@ jobs:
             pkg_add go
           run: |
             echo 'XXXXXX'
+            export GOTOOLCHAIN=auto
             su action -c 'go version'
             su action -c 'go test ./...'
 
