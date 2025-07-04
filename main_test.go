@@ -979,10 +979,10 @@ func TestLFlag(t *testing.T) {
 		want := norm(`
 			  6.5K │ 21:35 │ file-1
 			  6.5K │ 21:35 │ link-file-1
-			     · │ 21:35 │ dir
-			     · │ 21:35 │ link-dir
 			     0 │ 21:35 │ file-2
-			     0 │ 21:35 │ link-file-2`,
+			     0 │ 21:35 │ link-file-2
+			     · │ 21:35 │ dir
+			     · │ 21:35 │ link-dir`,
 			repl...)
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)

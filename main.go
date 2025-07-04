@@ -201,7 +201,7 @@ func main() {
 		prDir.Bool(), derefCmdline.Bool(), derefAll.Bool(), nostat)
 
 	// Order it.
-	order(toPrint, sortFlag.String(), timeField, sortReverse.Bool(), dirsFirst.Bool())
+	order(toPrint, sortFlag.String(), timeField, sortReverse.Bool(), dirsFirst.Bool(), dirSize.Bool())
 
 	// Print as JSON.
 	if asJSON.Bool() {
@@ -554,7 +554,7 @@ func gather(args []string, errs *errGroup, all, recurse, dirSize, prDir, derefCm
 //}
 
 // Sort files.
-func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst bool) {
+func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst, dirSize bool) {
 	var (
 		sorter func(a, b fileInfo) int
 		// TODO: Hack for Linux btime, until we rewrite some of the stdlib stuff.
@@ -584,7 +584,17 @@ func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst boo
 
 	switch sortby {
 	case "size":
-		sorter = func(a, b fileInfo) int { return cmp.Compare(b.Size(), a.Size()) }
+		// Make sure we have consistent sorting for -S, and also sort "below" 0.
+		sorter = func(a, b fileInfo) int {
+			n1, n2 := a.Size(), b.Size()
+			if (!dirSize && a.IsDir()) || a.Mode()&fs.ModeSymlink != 0 {
+				n1 = -1
+			}
+			if (!dirSize && b.IsDir()) || b.Mode()&fs.ModeSymlink != 0 {
+				n2 = -1
+			}
+			return cmp.Compare(n2, n1)
+		}
 	case "time":
 		switch timeField {
 		case "btime":
