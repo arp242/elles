@@ -70,6 +70,7 @@ How to format paths:
                      Only works for interactive terminals or when -w is set.
                      -no-trim turns this off and takes precedence over -trim (so
                      you can set -trim from an alias and turn it off).
+    -e, -no-ext      Don't print file extension.
 
 Sorting:
 

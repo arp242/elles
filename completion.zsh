@@ -31,6 +31,7 @@ arguments=(
 	'(-w --width)'{-w,--width}'[maximum column width]'
 	'(--trim --no-trim)'--trim"[trim pathnames if they're too long to fit on the screen]"
 	'(--no-trim --trim)'--no-trim'[disable --trim]'
+	'(-e,--no-ext)'{-e,--no-ext}"[Don't print file extension]"
 	'(-o --octal)'{-o,--octal}'[file permissions as octal]'
 
 	'--color=-[control use of color]:color:(never always auto)'

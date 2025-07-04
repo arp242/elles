@@ -103,6 +103,7 @@ func main() {
 		octal        = f.Bool(false, "o", "octal")
 		group        = f.Bool(false, "g", "groupname")
 		minCols      = f.Int(0, "m", "min")
+		noExt        = f.Bool(false, "e", "no-ext")
 	)
 	zli.F(f.Parse(zli.AllowMultiple()))
 	if colorBSD.Bool() && !color.Set() {
@@ -228,6 +229,7 @@ func main() {
 		maxColWidth: width.Int(),
 		derefAll:    derefAll.Bool(),
 		minCols:     minCols.Int(),
+		noExt:       noExt.Bool(),
 	}
 
 	draw(toPrint, errs, opt, cols.Set())
@@ -315,7 +317,7 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 				pad = 4
 			}
 			for i := range 200 {
-				r, w := recol(fmtRows, widths, i+1, pad)
+				r, w := recol(fmtRows, widths, i, pad)
 				if sum(w) > columns {
 					if i <= 1 {
 						rows, colwidths = r, w

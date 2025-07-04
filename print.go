@@ -44,7 +44,7 @@ type (
 		numericUID, group, hyperlink                bool
 		blockSize, timeField                        string
 		one, cols, recurse, inode                   bool
-		trim, octal, derefAll                       bool
+		trim, octal, derefAll, noExt                bool
 	}
 )
 
@@ -207,6 +207,13 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 	if fi.Mode()&0o111 != 0 {
 		ex = "*"
 	}
+	if (fi.Mode().IsRegular() || fi.Mode()&fs.ModeSymlink != 0) && opt.noExt {
+		if ext := filepath.Ext(n); ext != "" {
+			n = n[:len(n)-len(ext)]
+			width -= len(ext)
+		}
+	}
+
 	switch {
 	case fi.Mode()&fs.ModeSetuid != 0:
 		ifset(colorSuid, ex)
