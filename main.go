@@ -104,6 +104,7 @@ func main() {
 		group        = f.Bool(false, "g", "groupname")
 		minCols      = f.Int(0, "m", "min")
 		noExt        = f.Bool(false, "e", "no-ext")
+		dirSize      = f.Bool(false, "D", "dirsize")
 	)
 	zli.F(f.Parse(zli.AllowMultiple()))
 	if colorBSD.Bool() && !color.Set() {
@@ -196,8 +197,8 @@ func main() {
 	errs := &errGroup{MaxSize: 100}
 
 	// Gather list to print.
-	toPrint := gather(f.Args, errs, all.Bool(), recurse.Bool(), prDir.Bool(),
-		derefCmdline.Bool(), derefAll.Bool(), nostat)
+	toPrint := gather(f.Args, errs, all.Bool(), recurse.Bool(), dirSize.Bool(),
+		prDir.Bool(), derefCmdline.Bool(), derefAll.Bool(), nostat)
 
 	// Order it.
 	order(toPrint, sortFlag.String(), timeField, sortReverse.Bool(), dirsFirst.Bool())
@@ -410,7 +411,7 @@ func sum(s []int) int {
 }
 
 // Gather list of everything we want to print.
-func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefAll, nostat bool) []printable {
+func gather(args []string, errs *errGroup, all, recurse, dirSize, prDir, derefCmd, derefAll, nostat bool) []printable {
 	var (
 		toPrint    = make([]printable, 0, 16)
 		filesIndex = -1 // index in toPrint for individual files.
@@ -483,6 +484,9 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefA
 						// Don't skip the entire file, just don't add stat info.
 						pr.fi = append(pr.fi, fileInfo{fakeFileInfo{l}, "", ""})
 					} else {
+						if fi.IsDir() && dirSize {
+							fi = &rdir{path: filepath.Join(ad, l.Name()), fi: fi}
+						}
 						pr.fi = append(pr.fi, fileInfo{fi, "", ""})
 					}
 				}
@@ -495,13 +499,16 @@ func gather(args []string, errs *errGroup, all, recurse, prDir, derefCmd, derefA
 			for _, s := range subdirs {
 				addArg(s)
 			}
-		} else { /// Single file.
+		} else { /// Single file (or directory with -d).
 			if prDir {
 				a = strings.TrimRight(a, "/")
 			}
 			d := strings.TrimSuffix(a, fi.Name())
 			ad, err := filepath.Abs(d)
 			errs.Append(err)
+			if fi.IsDir() && dirSize {
+				fi = &rdir{path: filepath.Join(ad, fi.Name()), fi: fi}
+			}
 
 			if filesIndex == -1 {
 				toPrint = append(toPrint, printable{

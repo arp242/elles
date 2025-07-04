@@ -57,6 +57,7 @@ How to format paths:
                        "s" for allocated filesystem blocks
                        "S" for blocks (differs from "s" for sparse files)
                        unit as K, M, or G (powers of 1024)
+    -D, -dirsize     Print recursive directory size in -l. May be slow.
     -c               Use creation ("birth") time for display in -l, and sorting
                      with -t. Does nothing if neither -l nor -t is given.
     -u               Use last access time for display in -l, and sorting

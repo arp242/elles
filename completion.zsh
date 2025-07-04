@@ -40,6 +40,7 @@ arguments=(
 	'(-F -p)'-F'[append file type indicators]'
 	'(-,)'-,'[print file sizes with thousands separators]'
 	'--blocks=-[format for file sizes]:block:(1 s S K M G)'
+	'(-D --dirsize)'{-D,--dirsize}'[Print recursive directory size in -l. May be slow]'
 	'(-c -u)'-c'[use creation (btime) in -l and -t sorting]'
 	'(-c -u)'-u'[use access in -l and -t sorting]'
 	'(-T)'-T'[display full time info]'
