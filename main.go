@@ -231,6 +231,7 @@ func main() {
 		derefAll:    derefAll.Bool(),
 		minCols:     minCols.Int(),
 		noExt:       noExt.Bool(),
+		dirSize:     dirSize.Bool(),
 	}
 
 	draw(toPrint, errs, opt, cols.Set())

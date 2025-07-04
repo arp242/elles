@@ -44,7 +44,7 @@ type (
 		numericUID, group, hyperlink                bool
 		blockSize, timeField                        string
 		one, cols, recurse, inode                   bool
-		trim, octal, derefAll, noExt                bool
+		trim, octal, derefAll, noExt, dirSize       bool
 	}
 )
 
@@ -78,7 +78,7 @@ func getCols(p printable, opt opts) cols {
 			n, w := decoratePath(fp, afp, fi, opt, false, !p.isFiles)
 			cur = append(cur, col{s: n, w: w, prop: alignNone})
 		} else if opt.list == 1 {
-			s, w := listSize(fi, p.absdir, opt.blockSize, opt.comma)
+			s, w := listSize(fi, p.absdir, opt.blockSize, opt.comma, opt.dirSize)
 
 			if opt.inode {
 				n := strconv.FormatUint(os2.Serial(p.absdir, fi), 10)
@@ -140,7 +140,7 @@ func getCols(p printable, opt opts) cols {
 				cur = append(cur, col{})
 			}
 
-			s, w := listSize(fi, p.absdir, opt.blockSize, opt.comma)
+			s, w := listSize(fi, p.absdir, opt.blockSize, opt.comma, opt.dirSize)
 			cur = append(cur, col{s: s, w: w})
 
 			var (
@@ -457,7 +457,10 @@ func groupDigits(s string) string {
 // Only used for the default "-h" sizes
 var testFixedSizeWidth bool
 
-func listSize(fi fs.FileInfo, absdir, blockSize string, comma bool) (string, int) {
+func listSize(fi fs.FileInfo, absdir, blockSize string, comma, dirSize bool) (string, int) {
+	if fi.Mode()&fs.ModeSymlink != 0 || (fi.IsDir() && !dirSize) {
+		return "·", 1
+	}
 	if fi.Size() == -1 {
 		return "???", 3
 	}

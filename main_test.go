@@ -261,8 +261,8 @@ func TestLong(t *testing.T) {
 			 1.0M │ 15:04 │ 1M
 			    0 │ 15:04 │ dir
 			 9.8K │ 15:04 │ file
-			    3 │ 15:04 │ ln-dir → dir
-			    4 │ 15:04 │ ln-file → file`,
+			    · │ 15:04 │ ln-dir → dir
+			    · │ 15:04 │ ln-file → file`,
 			"15:04", now.Format("15:04"))
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
@@ -274,8 +274,8 @@ func TestLong(t *testing.T) {
 			 1.0M │ 2006-01-02 15:04:05 │ 1M
 			    0 │ 2006-01-02 15:04:05 │ dir
 			 9.8K │ 2006-01-02 15:04:05 │ file
-			    3 │ 2006-01-02 15:04:05 │ ln-dir → dir
-			    4 │ 2006-01-02 15:04:05 │ ln-file → file`,
+			    · │ 2006-01-02 15:04:05 │ ln-dir → dir
+			    · │ 2006-01-02 15:04:05 │ ln-file → file`,
 			"2006-01-02 15:04:05", now.Format("2006-01-02 15:04:05"))
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
@@ -296,8 +296,8 @@ func TestLong(t *testing.T) {
 			 1.0M │ 2006-01-02 15:04:05.000000000 -07:00 │ 1M
 			    0 │ 2006-01-02 15:04:05.000000000 -07:00 │ dir
 			 9.8K │ 2006-01-02 15:04:05.000000000 -07:00 │ file
-			    3 │ 2006-01-02 15:04:05.000000000 -07:00 │ ln-dir → dir
-			    4 │ 2006-01-02 15:04:05.000000000 -07:00 │ ln-file → file`,
+			    · │ 2006-01-02 15:04:05.000000000 -07:00 │ ln-dir → dir
+			    · │ 2006-01-02 15:04:05.000000000 -07:00 │ ln-file → file`,
 			"2006-01-02 15:04:05.000000000 -07:00", tt.Format("2006-01-02 15:04:05.000000000 -07:00"))
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
@@ -335,8 +335,8 @@ func TestLongLong(t *testing.T) {
 			-rw-r--r-- martin tournoij 1.0M Jan _2 15:04 │ 1M
 			-rw-r--r-- martin tournoij    0 Jan _2 15:04 │ dir
 			-rw-r--r-- martin tournoij 9.8K Jan _2 15:04 │ file
-			`+lnkprm+` martin tournoij    3 Jan _2 15:04 │ ln-dir → dir
-			`+lnkprm+` martin tournoij    4 Jan _2 15:04 │ ln-file → file`,
+			`+lnkprm+` martin tournoij    · Jan _2 15:04 │ ln-dir → dir
+			`+lnkprm+` martin tournoij    · Jan _2 15:04 │ ln-file → file`,
 			"Jan _2 15:04", now.Format("Jan _2 15:04"))
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
@@ -349,8 +349,8 @@ func TestLongLong(t *testing.T) {
 			-rw-r--r-- martin tournoij 1.0M 2006-01-02 15:04:05 │ 1M
 			-rw-r--r-- martin tournoij    0 2006-01-02 15:04:05 │ dir
 			-rw-r--r-- martin tournoij 9.8K 2006-01-02 15:04:05 │ file
-			`+lnkprm+` martin tournoij    3 2006-01-02 15:04:05 │ ln-dir → dir
-			`+lnkprm+` martin tournoij    4 2006-01-02 15:04:05 │ ln-file → file`,
+			`+lnkprm+` martin tournoij    · 2006-01-02 15:04:05 │ ln-dir → dir
+			`+lnkprm+` martin tournoij    · 2006-01-02 15:04:05 │ ln-file → file`,
 			"2006-01-02 15:04:05", now.Format("2006-01-02 15:04:05"))
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
@@ -363,8 +363,8 @@ func TestLongLong(t *testing.T) {
 			-rw-r--r-- XXXX YYYY 1.0M Jan _2 15:04 │ 1M
 			-rw-r--r-- XXXX YYYY    0 Jan _2 15:04 │ dir
 			-rw-r--r-- XXXX YYYY 9.8K Jan _2 15:04 │ file
-			`+lnkprm+` XXXX YYYY    3 Jan _2 15:04 │ ln-dir → dir
-			`+lnkprm+` XXXX YYYY    4 Jan _2 15:04 │ ln-file → file`,
+			`+lnkprm+` XXXX YYYY    · Jan _2 15:04 │ ln-dir → dir
+			`+lnkprm+` XXXX YYYY    · Jan _2 15:04 │ ln-file → file`,
 			"Jan _2 15:04", now.Format("Jan _2 15:04"),
 			"XXXX", userinfo.UserID,
 			"YYYY", userinfo.GroupID)
@@ -379,8 +379,8 @@ func TestLongLong(t *testing.T) {
 			 644 martin tournoij 1.0M Jan _2 15:04 │ 1M
 			 644 martin tournoij    0 Jan _2 15:04 │ dir
 			 644 martin tournoij 9.8K Jan _2 15:04 │ file
-			`+lnkprmO+` martin tournoij    3 Jan _2 15:04 │ ln-dir → dir
-			`+lnkprmO+` martin tournoij    4 Jan _2 15:04 │ ln-file → file`,
+			`+lnkprmO+` martin tournoij    · Jan _2 15:04 │ ln-dir → dir
+			`+lnkprmO+` martin tournoij    · Jan _2 15:04 │ ln-file → file`,
 			"Jan _2 15:04", now.Format("Jan _2 15:04"))
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
@@ -699,7 +699,7 @@ func TestInode(t *testing.T) {
 	{
 		have := mustRun(t, "-gliBS")
 		want := norm(`
-			XXX │ 1 │ 2023-06-11 │ dir
+			XXX │ · │ 2023-06-11 │ dir
 			YYY │ 0 │ 2023-06-11 │ file`,
 			"XXX", inodes[0],
 			"YYY", inodes[1],
@@ -712,7 +712,7 @@ func TestInode(t *testing.T) {
 	{
 		have := mustRun(t, "-glliBS")
 		want := norm(`
-			XXX drwxr-xr-x martin tournoij 1 Jun 11 15:05 │ dir
+			XXX drwxr-xr-x martin tournoij · Jun 11 15:05 │ dir
 			YYY -rw-r--r-- martin tournoij 0 Jun 11 15:05 │ file`,
 			"XXX", inodes[0],
 			"YYY", inodes[1])
@@ -949,12 +949,7 @@ func TestLFlag(t *testing.T) {
 	symlink(t, "file-1", "link-file-1")
 	symlink(t, "file-2", "link-file-2")
 	symlink(t, "dir", "link-dir")
-	st, err := os.Stat("dir")
-	if err != nil {
-		t.Fatal(err)
-	}
-	dsz, _ := listSize(st, "", "", false)
-	repl := []string{"21:35", now, "TMPDIR", tmp, "DIRSZ", fmt.Sprintf("%5s", dsz)}
+	repl := []string{"21:35", now, "TMPDIR", tmp}
 
 	{
 		have := mustRun(t, "-CL")
@@ -967,10 +962,10 @@ func TestLFlag(t *testing.T) {
 	{
 		have := mustRun(t, "-lL")
 		want := norm(`
-			 DIRSZ │ 21:35 │ dir
+			     · │ 21:35 │ dir
 			  6.5K │ 21:35 │ file-1
 			     0 │ 21:35 │ file-2
-			 DIRSZ │ 21:35 │ link-dir
+			     · │ 21:35 │ link-dir
 			  6.5K │ 21:35 │ link-file-1
 			     0 │ 21:35 │ link-file-2`,
 			repl...)
@@ -984,8 +979,8 @@ func TestLFlag(t *testing.T) {
 		want := norm(`
 			  6.5K │ 21:35 │ file-1
 			  6.5K │ 21:35 │ link-file-1
-			 DIRSZ │ 21:35 │ dir
-			 DIRSZ │ 21:35 │ link-dir
+			     · │ 21:35 │ dir
+			     · │ 21:35 │ link-dir
 			     0 │ 21:35 │ file-2
 			     0 │ 21:35 │ link-file-2`,
 			repl...)
@@ -996,10 +991,10 @@ func TestLFlag(t *testing.T) {
 	{ // And width
 		have := mustRun(t, "-lLW")
 		want := norm(`
-			 DIRSZ │ 21:35 │ dir
+			     · │ 21:35 │ dir
 			  6.5K │ 21:35 │ file-1
 			     0 │ 21:35 │ file-2
-			 DIRSZ │ 21:35 │ link-dir
+			     · │ 21:35 │ link-dir
 			  6.5K │ 21:35 │ link-file-1
 			     0 │ 21:35 │ link-file-2`,
 			repl...)
@@ -1039,13 +1034,13 @@ func TestLFlag(t *testing.T) {
 				t.Error("exit 0")
 			}
 			want := norm(`
-				 DIRSZ │      21:35 │ dir
+				     · │      21:35 │ dir
 				  6.5K │      21:35 │ file-1
 				     0 │      21:35 │ file-2
-				 DIRSZ │      21:35 │ link-dir
+				     · │      21:35 │ link-dir
 				  6.5K │      21:35 │ link-file-1
 				     0 │      21:35 │ link-file-2
-				   ??? │ ????-??-?? │ link-orphan
+				     · │ ????-??-?? │ link-orphan
 				elles: stat TMPDIR/link-orphan: no such file or directory`,
 				repl...)
 			if have != want {
@@ -1090,13 +1085,13 @@ func TestLFlag(t *testing.T) {
 				t.Error("exit 0")
 			}
 			want := norm(`
-				 DIRSZ │      21:35 │ dir
+				     · │      21:35 │ dir
 				  6.5K │      21:35 │ file-1
 				     0 │      21:35 │ file-2
-				 DIRSZ │      21:35 │ link-dir
+				     · │      21:35 │ link-dir
 				  6.5K │      21:35 │ link-file-1
 				     0 │      21:35 │ link-file-2
-				   ??? │ ????-??-?? │ link-loop
+				     · │ ????-??-?? │ link-loop
 				elles: stat TMPDIR/link-loop: ERRMSG`,
 				append([]string{"ERRMSG", msg}, repl...)...)
 			if have != want {
@@ -1785,7 +1780,7 @@ func TestUnreadable(t *testing.T) {
 		have, ok := run(t, "-l", "dir")
 		_ = ok
 		want := norm(`
-			 ??? │ ????-??-?? │ link → ???
+			 · │ ????-??-?? │ link → ???
 			elles: lstat dir/link: permission denied`)
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
@@ -1796,7 +1791,7 @@ func TestUnreadable(t *testing.T) {
 		have, ok := run(t, "-ll", "dir")
 		_ = ok
 		want := norm(`
-			l---------  :[failed] ??? ????-??-?? │ link → ???
+			l---------  :[failed] · ????-??-?? │ link → ???
 			elles: lstat dir/link: permission denied`)
 		if have != want {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
