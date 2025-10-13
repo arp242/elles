@@ -13,7 +13,7 @@ import (
 )
 
 func clearColors() {
-	zli.WantColor = false
+	zli.WantColor, colorLinkAsTarget = false, false
 	for _, c := range []*string{
 		&colorNormal, &colorFile, &colorDir, &colorLink, &colorPipe, &colorSocket,
 		&colorBlockDev, &colorCharDev, &colorOrphan, &colorExec, &colorDoor,

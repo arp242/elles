@@ -13,6 +13,7 @@ var (
 	colorBlockDev, colorCharDev, colorOrphan, colorExec                                 string
 	colorDoor, colorSuid, colorSgid, colorSticky, colorOtherWrite, colorOtherWriteStick string
 	colorHidden                                                                         string
+	colorLinkAsTarget                                                                   bool // ln=target
 	reset                                                                               string
 	colorExt                                                                            map[string]string
 )
@@ -187,7 +188,11 @@ func readGNUColors(c string, extended bool) bool {
 		case "di":
 			colorDir = "\x1b[" + v + "m"
 		case "ln":
-			colorLink = "\x1b[" + v + "m"
+			if v == "target" {
+				colorLinkAsTarget = true
+			} else {
+				colorLink = "\x1b[" + v + "m"
+			}
 		case "pi":
 			colorPipe = "\x1b[" + v + "m"
 		case "so":

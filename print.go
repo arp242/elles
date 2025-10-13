@@ -256,7 +256,11 @@ func decoratePath(dir, absdir string, fi fs.FileInfo, opt opts, linkDest, listin
 			// it's still a link here, but we don't really want to display it as
 			// such.
 		} else if !linkDest {
-			ifset(colorLink, "@")
+			c := colorLink
+			if colorLinkAsTarget {
+				// TODO: get appropiate colour; also in the else branch below
+			}
+			ifset(c, "@")
 		} else {
 			l, err := os.Readlink(filepath.Join(dir, fi.Name()))
 			// If the Readlink failed the stat almost certainly also failed;
