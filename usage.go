@@ -39,9 +39,9 @@ How to list it:
     -n               Display user an group ID as number, rather than username.
     -w, -width=..    Maximum column width; longer columns will be trimmed. Set
                      to 0 to disable.
-    -m, -min=n       Minimum number of columns to use, trimming columns that are
-                     too long. This does not set the exact number of columns and
-                     sometimes results in more columns.
+    -m, -min=n       Minimum number of columns to use, trimming columns that
+                     are too long. This does not set the exact number of
+                     columns and sometimes results in more columns.
     -o, -octal       File permissions as octal instead of "rwx…".
 
 How to format paths:
@@ -69,8 +69,8 @@ How to format paths:
                      twice to always quote everything.
     -trim, -no-trim  Trim pathnames if they're too long to fit on the screen.
                      Only works for interactive terminals or when -w is set.
-                     -no-trim turns this off and takes precedence over -trim (so
-                     you can set -trim from an alias and turn it off).
+                     -no-trim turns this off and takes precedence over -trim
+                     (so you can set -trim from an alias and turn it off).
     -e, -no-ext      Don't print file extension.
 
 Sorting:
@@ -114,11 +114,11 @@ Colours:
     LS_COLORS or LSCOLORS if it's set. The syntax of this follows GNU's
     LS_COLORS, with additional options:
 
-        default  Explicitly set which defalts to use, "bsd" or "gnu". The BSD
+        default  Explicitly set which defaults to use, "bsd" or "gnu". The BSD
                  defaults tend to work better on light backgrounds, and the GNU
                  ones on dark backgrounds.
 
-        hidden   Additional highlights for hidden entries (e.g. those that start
+        hidden   Additional highlights for hidden entries (e.g. paths starting
                  with a "."). These are applied after the regular colour codes.
 
     For example, to use the BSD defaults with a grey background for hidden
