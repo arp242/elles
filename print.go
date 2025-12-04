@@ -36,12 +36,13 @@ type (
 	}
 	cols struct {
 		longest []int
+		tsize   int64
 		rows    [][]col
 	}
 	opts struct {
 		list, quote, fullTime, maxColWidth, minCols int
 		dirSlash, classify, comma                   bool
-		numericUID, group, hyperlink                bool
+		numericUID, group, hyperlink, total         bool
 		blockSize, timeField                        string
 		one, cols, recurse, inode                   bool
 		trim, octal, derefAll, noExt, dirSize       bool
@@ -79,6 +80,7 @@ func getCols(p printable, opt opts) cols {
 			cur = append(cur, col{s: n, w: w, prop: alignNone})
 		} else if opt.list == 1 {
 			s, w := listSize(fi, p.absdir, opt.blockSize, opt.comma, opt.dirSize)
+			cc.tsize += fi.Size()
 
 			if opt.inode {
 				n := strconv.FormatUint(os2.Serial(p.absdir, fi), 10)
@@ -141,6 +143,8 @@ func getCols(p printable, opt opts) cols {
 			}
 
 			s, w := listSize(fi, p.absdir, opt.blockSize, opt.comma, opt.dirSize)
+			cc.tsize += fi.Size()
+
 			cur = append(cur, col{s: s, w: w})
 
 			var (

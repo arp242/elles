@@ -43,6 +43,7 @@ How to list it:
                      are too long. This does not set the exact number of
                      columns and sometimes results in more columns.
     -o, -octal       File permissions as octal instead of "rwx…".
+    -total           Print total size in -l output.
 
 How to format paths:
 

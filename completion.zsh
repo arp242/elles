@@ -25,7 +25,7 @@ arguments=(
 	'(-1 -C)'-ll'[longer listing]'
 	'(-l -C -ll)'-1'[single column output]'
 	'(-1 -l -ll)'-C'[columnar output]'
-	'(--group-dirs)'--group-dirs'[group drectories first]'
+	'(--group-dirs)'--group-dirs'[group directories first]'
 	'(-n)'-n'[numeric uid and gid]'
 	'(-L)'-L"[don't show symlink targets in -l]"
 	'(-w --width)'{-w,--width}'[maximum column width]'
@@ -41,6 +41,7 @@ arguments=(
 	'(-,)'-,'[print file sizes with thousands separators]'
 	'--blocks=-[format for file sizes]:block:(1 s S K M G)'
 	'(-D --dirsize)'{-D,--dirsize}'[Print recursive directory size in -l. May be slow]'
+	'(--total)'--total'[print total size in -l]'
 	'(-c -u)'-c'[use creation (btime) in -l and -t sorting]'
 	'(-c -u)'-u'[use access in -l and -t sorting]'
 	'(-T)'-T'[display full time info]'

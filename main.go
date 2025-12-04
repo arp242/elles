@@ -101,6 +101,7 @@ func main() {
 		trim         = f.Bool(false, "trim")
 		noTrim       = f.Bool(false, "no-trim")
 		octal        = f.Bool(false, "o", "octal")
+		total        = f.Bool(false, "total")
 		group        = f.Bool(false, "g", "groupname")
 		minCols      = f.Int(0, "m", "min")
 		noExt        = f.Bool(false, "e", "no-ext")
@@ -222,6 +223,7 @@ func main() {
 		list:        list.Int(),
 		numericUID:  numericUID.Bool(),
 		octal:       octal.Bool(),
+		total:       total.Bool(),
 		one:         one.Bool(),
 		quote:       quote.Int(),
 		recurse:     recurse.Bool(),
@@ -238,6 +240,7 @@ func main() {
 }
 
 func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
+	var tsize int64
 	for i, p := range toPrint {
 		// Print direcrory headers, but not when recursing with -D and there are
 		// no directories.
@@ -252,6 +255,7 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 		// because we may or may not add things such as "/". Even with very
 		// large directories it shouldn't take more than a few hundred K.
 		cc := getCols(p, opt)
+		tsize += cc.tsize
 
 	refmt:
 		var (
@@ -365,6 +369,13 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 		}
 	}
 
+	// ls prints the total at the top, but printing it at the bottom makes much
+	// more sense to me.
+	if opt.list > 0 && opt.total {
+		sz, _ := listSize(fakeFileinfo{tsize}, "", opt.blockSize, opt.comma, false)
+		fmt.Fprintln(zli.Stdout, "Total:", sz)
+	}
+
 	// Print errors last, so they're more visible. ls does this at the top, and
 	// it's easy to miss if pushed off the screen.
 	for _, e := range errs.List() {
@@ -374,6 +385,15 @@ func draw(toPrint []printable, errs *errGroup, opt opts, colsSet bool) {
 		zli.Exit(1)
 	}
 }
+
+type fakeFileinfo struct{ sz int64 }
+
+func (f fakeFileinfo) Name() string       { return "" }
+func (f fakeFileinfo) Size() int64        { return f.sz }
+func (f fakeFileinfo) Mode() fs.FileMode  { return 0 }
+func (f fakeFileinfo) ModTime() time.Time { return time.Time{} }
+func (f fakeFileinfo) IsDir() bool        { return false }
+func (f fakeFileinfo) Sys() any           { return nil }
 
 func recol(paths []string, pathWidths []int, ncols, pad int) ([][]string, []int) {
 	var (
