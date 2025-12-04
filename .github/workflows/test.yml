@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: 'actions/checkout@v4'
       - uses: 'actions/setup-go@v5'
-        with: {go-version: '1.24'}
+        with: {go-version: '1.25'}
       - name: 'test (linux)'
         run: 'go test ./...'
 
@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: 'actions/checkout@v4'
       - uses: 'actions/setup-go@v5'
-        with: {go-version: '1.24'}
+        with: {go-version: '1.25'}
       - name: 'test (linux-arm64)'
         run: 'go test ./...'
 
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: 'actions/checkout@v4'
       - uses: 'actions/setup-go@v5'
-        with: {go-version: '1.24'}
+        with: {go-version: '1.25'}
       - name: 'test (windows)'
         run: 'go test ./...'
 
@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: 'actions/checkout@v4'
       - uses: 'actions/setup-go@v5'
-        with: {go-version: '1.24'}
+        with: {go-version: '1.25'}
       - name: 'test (macos)'
         run: 'go test ./...'
 
@@ -55,12 +55,12 @@ jobs:
         uses: 'vmactions/freebsd-vm@v1'
         with:
           prepare: |
-            pkg install -y go122
+            pkg install -y go125
             pw user add -n action -m
           run: |
             echo 'XXXXXX'
-            su action -c 'go122 version'
-            su action -c 'go122 test ./...'
+            su action -c 'go125 version'
+            su action -c 'go125 test ./...'
 
   openbsd:
     name: 'test (openbsd)'
@@ -91,11 +91,11 @@ jobs:
         with:
           prepare: |
             useradd -mG wheel action
-            pkg_add go122
+            pkg_add go125
           run: |
             echo 'XXXXXX'
-            su action -c '/usr/pkg/bin/go122 version'
-            su action -c '/usr/pkg/bin/go122 test ./...'
+            su action -c '/usr/pkg/bin/go125 version'
+            su action -c '/usr/pkg/bin/go125 test ./...'
 
   illumos:
     name: 'test (illumos)'
@@ -108,7 +108,7 @@ jobs:
       with:
         prepare: |
           useradd action
-          pkg install go-122
+          pkg install go-125
         run: |
           echo 'XXXXXX'
           export GOCACHE=/tmp/go-cache
