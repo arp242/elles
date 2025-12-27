@@ -1,10 +1,10 @@
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
-golang.org/x/sys v0.38.0 h1:3yZWxaJjBmCWXqhN1qh02AkOnCQ1poK6oF+a7xWL6Gc=
-golang.org/x/sys v0.38.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
+golang.org/x/sys v0.39.0 h1:CvCKL8MeisomCi6qNZ+wbb0DN9E5AATixKsvNtMoMFk=
+golang.org/x/sys v0.39.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
 zgo.at/runewidth v0.1.0 h1:ED4PzJpYJlZMDEkoz+iPKjb5NrwbKnWPXDMJlNlfk9g=
 zgo.at/runewidth v0.1.0/go.mod h1:Ugl6FGPF5Ib/NRu2UAV2wVthEgYfEz51Bu/uyNbWZSw=
 zgo.at/termtext v1.5.1-0.20240620230817-7e8a4a59650a h1:jok598mPBSr9aI05qxMT4NOjB+WG/o7DoL61i6xTZ8c=
 zgo.at/termtext v1.5.1-0.20240620230817-7e8a4a59650a/go.mod h1:AcdAAiydkqSFadljJaEj9jv7bpyJxfQqGtPWyZCLenQ=
-zgo.at/zli v0.0.0-20250704045222-08cb210424f2 h1:pD5v/8xKNvr4teFDhn9rSA5xFEze8uFEe8Ib3ALD67Y=
-zgo.at/zli v0.0.0-20250704045222-08cb210424f2/go.mod h1:0jjx+AGEkWOOQ0NtzbMnpko+H2G+aTg8mfCKqoc/BuA=
+zgo.at/zli v0.0.0-20251226224229-7bb9a5cf3265 h1:lF6LBMPq3zp1y84toTcZNkeRHx1ioK3Kz0CLC7GbUjU=
+zgo.at/zli v0.0.0-20251226224229-7bb9a5cf3265/go.mod h1:0jjx+AGEkWOOQ0NtzbMnpko+H2G+aTg8mfCKqoc/BuA=
