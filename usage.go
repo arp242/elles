@@ -43,7 +43,7 @@ How to list it:
                      are too long. This does not set the exact number of
                      columns and sometimes results in more columns.
     -o, -octal       File permissions as octal instead of "rwx…".
-    -total           Print total size in -l output.
+    -T, -total       Print total size in -l output.
 
 How to format paths:
 
@@ -63,7 +63,7 @@ How to format paths:
                      with -t. Does nothing if neither -l nor -t is given.
     -u               Use last access time for display in -l, and sorting
                      with -t. Does nothing if neither -l nor -t is given.
-    -T               Always display full time info, as "2006-01-02 15:00:00".
+    -+               Always display full time info, as "2006-01-02 15:00:00".
                      When given twice it will also display nanoseconds and
                      timezone.
     -Q               Quote paths with special shell characters or spaces; add

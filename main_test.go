@@ -268,8 +268,8 @@ func TestLong(t *testing.T) {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}
 	})
-	t.Run("-T", func(t *testing.T) {
-		have := mustRun(t, "-lT")
+	t.Run("-+", func(t *testing.T) {
+		have := mustRun(t, "-l+")
 		want := norm(`
 			 1.0M │ 2006-01-02 15:04:05 │ 1M
 			    0 │ 2006-01-02 15:04:05 │ dir
@@ -281,7 +281,7 @@ func TestLong(t *testing.T) {
 			t.Errorf("\nhave:\n%s\n\nwant:\n%s", have, want)
 		}
 	})
-	t.Run("-TT", func(t *testing.T) {
+	t.Run("-++", func(t *testing.T) {
 		supportsUtimes(t, true)
 
 		tt := time.Date(1985, 6, 16, 12, 13, 14, 15, time.Local)
@@ -291,7 +291,7 @@ func TestLong(t *testing.T) {
 			}
 		}
 
-		have := mustRun(t, "-lTT")
+		have := mustRun(t, "-l++")
 		want := norm(`
 			 1.0M │ 2006-01-02 15:04:05.000000000 -07:00 │ 1M
 			    0 │ 2006-01-02 15:04:05.000000000 -07:00 │ dir
@@ -343,8 +343,8 @@ func TestLongLong(t *testing.T) {
 		}
 	})
 
-	t.Run("-T", func(t *testing.T) {
-		have := mustRun(t, "-llgT")
+	t.Run("-+", func(t *testing.T) {
+		have := mustRun(t, "-llg+")
 		want := norm(`
 			-rw-r--r-- martin tournoij 1.0M 2006-01-02 15:04:05 │ 1M
 			-rw-r--r-- martin tournoij    0 2006-01-02 15:04:05 │ dir
