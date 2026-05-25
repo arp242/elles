@@ -96,7 +96,7 @@ func mntsCmd() bool {
 	if err != nil {
 		return false
 	}
-	for _, l := range strings.Split(string(out), "\n") {
+	for l := range strings.SplitSeq(string(out), "\n") {
 		f := strings.Fields(l)
 		if len(f) >= 3 && f[0] != "cgroup" && f[0] != "cgroup2" && f[0] != "map" {
 			mnts = append(mnts, f[2])

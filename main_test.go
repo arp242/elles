@@ -398,7 +398,7 @@ func TestLongSizeAlignment(t *testing.T) {
 
 	x := func(in string) string {
 		out := make([]string, 0, 8)
-		for _, l := range strings.Split(in, "\n") {
+		for l := range strings.SplitSeq(in, "\n") {
 			x := strings.Split(l, "│")
 			if len(x) < 3 {
 				t.Errorf("unexpected:\n%q", l)
@@ -1118,7 +1118,7 @@ func TestFilesizes(t *testing.T) {
 
 	run := func(flags ...string) string {
 		var h []string
-		for _, line := range strings.Split(mustRun(t, flags...), "\n") {
+		for line := range strings.SplitSeq(mustRun(t, flags...), "\n") {
 			x := strings.Split(line, "│")
 			h = append(h, fmt.Sprintf("%s│%s", x[0], x[2]))
 		}

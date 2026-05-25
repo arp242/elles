@@ -161,7 +161,7 @@ func readGNUColors(c string, extended bool) bool {
 	if c == "" {
 		return false
 	}
-	for _, cc := range strings.Split(c, ":") {
+	for cc := range strings.SplitSeq(c, ":") {
 		if cc == "" {
 			continue
 		}
