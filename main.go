@@ -583,7 +583,11 @@ func order(toPrint []printable, sortby, timeField string, reverse, dirsFirst, di
 		// TODO: Hack for Linux btime, until we rewrite some of the stdlib stuff.
 		sorter2 func(printable) func(a, b fileInfo) int
 
-		nameSort = func(a, b fileInfo) int { return cmp.Compare(a.Name(), b.Name()) }
+		// TODO: doing the filepath.Join here is not especially efficient;
+		// should probably include this in our fileInfo.
+		nameSort = func(a, b fileInfo) int {
+			return cmp.Compare(filepath.Join(a.filepath, a.Name()), filepath.Join(b.filepath, b.Name()))
+		}
 	)
 
 	// var (

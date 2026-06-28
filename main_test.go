@@ -651,7 +651,7 @@ func TestPathNames(t *testing.T) {
 	touch(t, "dir-two/file2")
 
 	have := strings.Fields(mustRun(t, "dir-one/file1", "dir-two/file2", "file"))
-	want := []string{"file", "dir-one/file1", "dir-two/file2"}
+	want := []string{"dir-one/file1", "dir-two/file2", "file"}
 	if !reflect.DeepEqual(have, want) {
 		t.Errorf("\nhave: %s\nwant: %s", have, want)
 	}
